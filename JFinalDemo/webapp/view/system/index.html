@@ -36,20 +36,19 @@
 			</tbody>
 		</table>
 	</div>
+	
 	<div id="systemModal" style="display: none;">
 		<form action="">
 			<label  class="sr-only">系统名称</label> 
-			<input type="hidden" name="id" value="${system.id!}">
+			<input type="hidden" name="system_id" id="system_id">
 			<input
-				type="text" id="system_name" name="system_name" value="${username!}"
+				type="text" id="system_name" name="system_name" value="${system.name!}"
 				class="form-control" placeholder="系统名称" required autofocus> 
 			<label class="sr-only">系统描述</label> 
 				
 			<input type="text"
-				id="system_desc" name="system_desc" value="${password!}"
+				id="system_desc" name="system_desc" value="${system.desc!}"
 				class="form-control" placeholder="系统描述" required>
-				
-			<button class="btn btn-lg btn-primary btn-block" type="submit">保存</button>
 		</form>
 	</div>
 </div>
@@ -57,24 +56,47 @@
 
 <script>
 	function editSystem(id) {
+		$.ajax({
+				url : "${baseUrl!}/system/find",
+				async : true,
+				cache : false,
+				type : 'post',
+				dataType : "json",
+				data : {
+					id : id
+				},
+				success : function(data) {
+				
+					console.log(data.detail);
+					if (data.code == '200') {
+						console.log('find ' + id);
+						layer.open	({
+							type : 1,
+							area: ['340px', '215px'],
+							title:'编辑'+ $('#name_'+id).val(),
+							content : $('#systemModal'),
+							closeBtn : 2,
+							btn: ['保存', '取消'],
+							yes: function(index, layero){
+						        saveSystem();
+						    },cancel: function(index){
+						    },
+						}
+						);
+						$("#system_name").val(data.detail.system_name);
+						$("#system_desc").val(data.detail.system_desc);
+						$("#system_id").val(data.detail.id);
+					} else {
+						alert(data.description);
+					}
+				}
+			});
+	
 		
-		
-		
-		layer.open	({
-			type : 1,
-			title:'编辑'+ $('#name_'+id).val(),
-			content : $('#systemModal'),
-			btn : [ 'close' ],
-			close : function(index) {
-
-			},
-			closeBtn : 2
-		}
-
-		);
 	}
+	
 	function deleteSystem(id) {
-		if (confirm("确定 删除该系统吗？")) {
+		if (confirm("确定删除该系统吗？")) {
 			$.ajax({
 				url : "${baseUrl!}/system/delete",
 				async : true,
@@ -82,7 +104,7 @@
 				type : 'post',
 				dataType : "json",
 				data : {
-					delete_id : id
+					id : id
 				},
 				success : function(data) {
 					console.log(data.code);
@@ -95,6 +117,47 @@
 				}
 			});
 		}
+	}
+	
+	function saveSystem(){
+	
+		layer.confirm(
+			'确定保存该系统吗？', 
+			{
+			    btn: ['确定','取消'], 
+			    shade: false
+			}, 
+			
+			function(){
+			    $.ajax({
+						url : "${baseUrl!}/system/edit",
+						async : true,
+						cache : false,
+						type : 'post',
+						dataType : "json",
+						data : {
+							"system.id" : $("#system_id").val(),
+							"system.system_name" : $("#system_name").val(),
+							"system.system_desc" : $("#system_desc").val()
+						},
+						success : function(data) {
+							console.log(data.code);
+							if (data.code == '200') {
+								layer.closeAll();
+								layer.msg(data.detail);
+								$("#name_"+$("#system_id").val()).val($("#system_name").val());
+								$("#desc_"+$("#system_id").val()).val($("#system_desc").val());
+							} else {
+								layer.closeAll('dialog');
+								layer.msg(data.description);
+							}
+						}
+					});
+			}, 
+			function(){
+			    //alert("xxx");
+			});
+
 	}
 </script>
 <%}%>
