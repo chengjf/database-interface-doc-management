@@ -1,0 +1,100 @@
+<% layout("/common/layout.html",{page_tab:'system'}){ %>
+
+
+
+<div class="container">
+
+	<div>
+		<table class="table table-hover">
+			<thead>
+				<th>系统名称</th>
+				<th>系统描述</th>
+				<th>操作</th>
+			</thead>
+			<tbody>
+				<% for(system in systemList){ %>
+				<tr class="ui-state-default" id="system_${system.id!}">
+					<input type="hidden" name="id" value="${system.id!}">
+
+					<td><input type="text" id="name_${system.id!}" name="system_name" readonly="readonly"
+						value="${system.system_name!}">
+					</td>
+
+					<td><textarea type="text" name="system_desc" id="desc_${system.id!}"
+							readonly="readonly">${system.system_desc!}</textarea>
+					</td>
+
+					<td><a href="javascript:editSystem('${system.id!}');" role="button"
+						class="btn"><span class="glyphicon glyphicon-edit"></span> </a> <a
+						href="javascript:deleteSystem('${system.id!}')" class="btn"
+						role="button"><span class="glyphicon glyphicon-trash"></span>
+					</a>
+					</td>
+				</tr>
+				<% } %>
+
+			</tbody>
+		</table>
+	</div>
+	<div id="systemModal" style="display: none;">
+		<form action="">
+			<label  class="sr-only">系统名称</label> 
+			<input type="hidden" name="id" value="${system.id!}">
+			<input
+				type="text" id="system_name" name="system_name" value="${username!}"
+				class="form-control" placeholder="系统名称" required autofocus> 
+			<label class="sr-only">系统描述</label> 
+				
+			<input type="text"
+				id="system_desc" name="system_desc" value="${password!}"
+				class="form-control" placeholder="系统描述" required>
+				
+			<button class="btn btn-lg btn-primary btn-block" type="submit">保存</button>
+		</form>
+	</div>
+</div>
+
+
+<script>
+	function editSystem(id) {
+		
+		
+		
+		layer.open	({
+			type : 1,
+			title:'编辑'+ $('#name_'+id).val(),
+			content : $('#systemModal'),
+			btn : [ 'close' ],
+			close : function(index) {
+
+			},
+			closeBtn : 2
+		}
+
+		);
+	}
+	function deleteSystem(id) {
+		if (confirm("确定 删除该系统吗？")) {
+			$.ajax({
+				url : "${baseUrl!}/system/delete",
+				async : true,
+				cache : false,
+				type : 'post',
+				dataType : "json",
+				data : {
+					delete_id : id
+				},
+				success : function(data) {
+					console.log(data.code);
+					if (data.code == '200') {
+						$("#system_" + id).remove();
+						console.log('deleted');
+					} else {
+						alert(data.description);
+					}
+				}
+			});
+		}
+	}
+</script>
+<%}%>
