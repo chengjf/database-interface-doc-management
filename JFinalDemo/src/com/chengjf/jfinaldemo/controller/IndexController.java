@@ -9,13 +9,12 @@ import com.jfinal.aop.Before;
 
 public class IndexController extends CommonController {
 
-	@Before(UserInterceptor.class)
 	public void index() {
 
-		HttpSession session = getSession();
-		User user = (User) session.getAttribute(Constants.SESSION_USER);
-		String username = user.getStr(User.USERNAME);
-		setAttr("username", username);
+//		HttpSession session = getSession();
+//		User user = (User) session.getAttribute(Constants.SESSION_USER);
+//		String username = user.getStr(User.USERNAME);
+//		setAttr("username", username);
 
 		render("index.html");
 	}

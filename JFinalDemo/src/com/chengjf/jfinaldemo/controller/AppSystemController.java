@@ -17,10 +17,13 @@ public class AppSystemController extends CommonController {
 	@Before(UserInterceptor.class)
 	public void index() {
 		List<AppSystem> systemList = AppSystem.me.getAllAppSystems();
-		setAttr("systemList", systemList);
+//		setAttr("systemList", systemList);
+		success(systemList);
 		render("index.html");
 	}
 
+	
+	
 	public void find() {
 		try {
 			String id = getPara("id");

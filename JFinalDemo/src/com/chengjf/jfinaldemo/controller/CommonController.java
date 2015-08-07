@@ -23,4 +23,5 @@ public class CommonController extends Controller {
     public void error(String message) {
         renderJson(new Result(Constants.ResultCode.FAILURE, message, null));
     }
+    
 }
