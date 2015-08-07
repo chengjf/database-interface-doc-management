@@ -18,7 +18,10 @@ public class Constants {
 	public final static String BEFORE_URL = "before_url";
 
 	
-	public static final String DELETE_FAILURE = "ɾ��ʧ��";
+	public static final String DELETE_FAILURE = "删除失败";
+	public static final String FIND_FAILURE = "查找失败";
+	public static final String EDIT_FAILURE = "编辑失败";
+	
 	
 	public static String getBaseUrl() {
 		return PropKit.use("config.properties").get("base.url");

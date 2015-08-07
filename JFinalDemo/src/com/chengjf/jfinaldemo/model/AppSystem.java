@@ -23,7 +23,7 @@ public class AppSystem extends Model<AppSystem> implements Serializable {
 	}
 
 	public AppSystem getAppSystemById(String id) {
-		return AppSystem.me.findFirst("select * from app_system where system_id=?",
+		return AppSystem.me.findFirst("select * from app_system where id=?",
 				id);
 	}
 	
