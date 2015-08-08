@@ -1,0 +1,163 @@
+<% layout("/common/layout.html",{page_tab:'system'}){ %>
+
+
+
+<div class="container">
+
+	<div>
+		<table class="table table-hover">
+			<thead>
+				<th>系统名称</th>
+				<th>系统描述</th>
+				<th>操作</th>
+			</thead>
+			<tbody>
+				<% for(system in systemList){ %>
+				<tr class="ui-state-default" id="system_${system.id!}">
+					<input type="hidden" name="id" value="${system.id!}">
+
+					<td><input type="text" id="name_${system.id!}" name="system_name" readonly="readonly"
+						value="${system.system_name!}">
+					</td>
+
+					<td><textarea type="text" name="system_desc" id="desc_${system.id!}"
+							readonly="readonly">${system.system_desc!}</textarea>
+					</td>
+
+					<td><a href="javascript:editSystem('${system.id!}');" role="button"
+						class="btn"><span class="glyphicon glyphicon-edit"></span> </a> <a
+						href="javascript:deleteSystem('${system.id!}')" class="btn"
+						role="button"><span class="glyphicon glyphicon-trash"></span>
+					</a>
+					</td>
+				</tr>
+				<% } %>
+
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="systemModal" style="display: none;">
+		<form action="">
+			<label  class="sr-only">系统名称</label> 
+			<input type="hidden" name="system_id" id="system_id">
+			<input
+				type="text" id="system_name" name="system_name" value="${system.name!}"
+				class="form-control" placeholder="系统名称" required autofocus> 
+			<label class="sr-only">系统描述</label> 
+				
+			<input type="text"
+				id="system_desc" name="system_desc" value="${system.desc!}"
+				class="form-control" placeholder="系统描述" required>
+		</form>
+	</div>
+</div>
+
+
+<script>
+	function editSystem(id) {
+		$.ajax({
+				url : "${baseUrl!}/system/find",
+				async : true,
+				cache : false,
+				type : 'post',
+				dataType : "json",
+				data : {
+					id : id
+				},
+				success : function(data) {
+				
+					console.log(data.detail);
+					if (data.code == '200') {
+						console.log('find ' + id);
+						layer.open	({
+							type : 1,
+							area: ['340px', '215px'],
+							title:'编辑'+ $('#name_'+id).val(),
+							content : $('#systemModal'),
+							closeBtn : 2,
+							btn: ['保存', '取消'],
+							yes: function(index, layero){
+						        saveSystem();
+						    },cancel: function(index){
+						    },
+						}
+						);
+						$("#system_name").val(data.detail.system_name);
+						$("#system_desc").val(data.detail.system_desc);
+						$("#system_id").val(data.detail.id);
+					} else {
+						alert(data.description);
+					}
+				}
+			});
+	
+		
+	}
+	
+	function deleteSystem(id) {
+		if (confirm("确定删除该系统吗？")) {
+			$.ajax({
+				url : "${baseUrl!}/system/delete",
+				async : true,
+				cache : false,
+				type : 'post',
+				dataType : "json",
+				data : {
+					id : id
+				},
+				success : function(data) {
+					console.log(data.code);
+					if (data.code == '200') {
+						$("#system_" + id).remove();
+						console.log('deleted');
+					} else {
+						alert(data.description);
+					}
+				}
+			});
+		}
+	}
+	
+	function saveSystem(){
+	
+		layer.confirm(
+			'确定保存该系统吗？', 
+			{
+			    btn: ['确定','取消'], 
+			    shade: false
+			}, 
+			
+			function(){
+			    $.ajax({
+						url : "${baseUrl!}/system/edit",
+						async : true,
+						cache : false,
+						type : 'post',
+						dataType : "json",
+						data : {
+							"system.id" : $("#system_id").val(),
+							"system.system_name" : $("#system_name").val(),
+							"system.system_desc" : $("#system_desc").val()
+						},
+						success : function(data) {
+							console.log(data.code);
+							if (data.code == '200') {
+								layer.closeAll();
+								layer.msg(data.detail);
+								$("#name_"+$("#system_id").val()).val($("#system_name").val());
+								$("#desc_"+$("#system_id").val()).val($("#system_desc").val());
+							} else {
+								layer.closeAll('dialog');
+								layer.msg(data.description);
+							}
+						}
+					});
+			}, 
+			function(){
+			    //alert("xxx");
+			});
+
+	}
+</script>
+<%}%>
