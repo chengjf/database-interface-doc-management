@@ -1,159 +1,120 @@
-window.App = Ember.Application.create({
-	ready: function() {
-		console.log("Start......");
-	},
-	// For debugging, log the information as below.
-	LOG_TRANSITIONS: true,
-	LOG_TRANSITIONS_INTERNAL: true
-});
+App = Ember.Application.create();
 
-
-
-// Router
 App.Router.map(function() {
-	this.resource('app', {
-		path: '/'
-	}, function() {
-		this.route("systems", {
-			path: '/systems'
-		}, function() {
-			this.route("add")
-		});
-		this.route("home");
-	});
-
-	this.resource('newsystem', {
-		path: 'story/new'
-	});
+  // put your routes here
+  this.resource("systems");
 });
 
-App.Route = Ember.Route.extend({
-	activate: function() {
-		console.log("Route Active");
-	},
-	beforeModel: function() {
-		console.log('Route beforeModel');
-	},
-	afterModel: function() {
-		console.log('Route afterModel ');
-	}
+App.IndexRoute = Ember.Route.extend({
+  model: function() {
+    // return ['red', 'yellow', 'blue'];
+    return this.store.findAll('system');
+  }
 });
 
-App.IndexAdapter = DS.RESTAdapter.extend({});
-
-App.AppHomeRoute = Ember.Route.extend({
-	activate: function() {
-		console.log("HomeRoute Active");
-	},
-	beforeModel: function() {
-		console.log('HomeRoute beforeModel');
-	},
-	afterModel: function() {
-		console.log('HomeRoute afterModel ');
-	},
-	model: function() {
-		return ['Jackson Huang', 'Ada Li', 'JK Rush'];
-	},
-	setupController: function(controller, model) {
-		controller.set('model', model);
-	}
+App.IndexController = Ember.Controller.extend({
+  actions: {
+    doSomething: function(){
+      alert('IndexController');
+    }
+  }
 });
 
-App.AppSystemsRoute = Ember.Route.extend({
-	activate: function() {
-		console.log("SystemsRoute Active");
-	},
-	beforeModel: function() {
-		console.log('SystemsRoute beforeModel');
-	},
-	afterModel: function() {
-		console.log('SystemsRoute afterModel ');
-	},
-	model: function() {
-		return Ember.$.getJSON('http://127.0.0.1:5000/api/v1/systems').then(function(data) {
-			console
-			return data.objects;
-		});
-	}
+
+
+App.SystemsRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.findAll('system');
+  },
+  setupController: function(controller,model) {
+     controller.set('model',model);
+  }
 });
 
-App.AppSystemsAddRoute = Ember.Route.extend({
-	activate: function() {
-		console.log("AppSystemsAddRoute Active");
-	},
-	beforeModel: function() {
-		console.log('AppSystemsAddRoute beforeModel');
-	},
-	afterModel: function() {
-		console.log('AppSystemsAddRoute afterModel ');
-	}
+App.SystemsController = Ember.Controller.extend({
+  actions: {
+    doSomething: function(){
+      alert('SystemsController');
+    },
+
+    add: function(){
+      var system = this.store.createRecord('system');
+      Em.Logger.info(system.get('controller'));
+      system.set('isCreating', 'true');
+    }
+  }
 });
 
+
+App.SystemController = Ember.ObjectController.extend({
+  isEditing: false,
+  
+  isCreating: Ember.computed('id', 'name', 'desc',function() {
+    var flag = this.get('model').get('isCreating')
+    return flag === undefined ? false : flag;
+  }),
+
+  actions: {
+    edit: function() {
+      this.set('isEditing', true);
+    },
+    save: function() {
+      Em.Logger.info("SystemController save");
+      this.set('isEditing', false);
+      this.set('isCreating', false);
+      this.get("model").save();
+      Em.Logger.info(this.get("model").get('isCreating'));
+    },
+    delete: function(){
+      if (window.confirm('Are you sure you want to delete this record?')) {
+        var system = this.get("model");
+        system.deleteRecord();
+        system.save();
+      }
+    },
+    cancelEdit: function( model ) {
+      var system = this.get("model");
+      this.set('isEditing', false);
+    },
+    cancelSave: function( model ) {
+      var system = this.get("model");
+      system.deleteRecord();
+    },
+    create: function(){
+      var system = this.get("model");
+
+      Em.Logger.info(system.get('id'));
+      system.save();
+    }
+  }
+});
+
+
+
+App.ItemController = Ember.Controller.extend({
+  actions: {
+    doSomething: function(){
+      alert(this.model);
+      return true;
+    }
+  }
+});
+
+App.ApplicationAdapter = DS.RESTAdapter.extend({
+  namespace: 'api/v1'
+});
 
 // Model
 App.System = DS.Model.extend({
-	name: DS.attr('string'),
-	desc: DS.attr('string')
+  number : DS.attr('string'),
+  name: DS.attr('string'),
+  desc: DS.attr('string')
 });
 
-
-// Controller
-App.AppSystemsController = Ember.ArrayController.extend();
-
-App.SystemController = Ember.ObjectController.extend({
-	isEditing: false,
-	actions: {
-		edit: function() {
-			this.set('isEditing', true);
-		},
-		save: function() {
-			console.lgo("SystemController save");
-			this.content.save();
-			this.set('isEditing', false);
-		},
-		cancel: function() {
-			thi.set('isEditing', false);
-			this.content.rollback();
-		},
-		add: function() {
-			cnosole.log("1 add");
-		}
-	}
+App.EditSystemView = Ember.TextField.extend({
+  didInsertElement: function() {
+    this.$().focus();
+  }
 });
 
-App.AppSystemsAddController = Ember.ObjectController.extend({
-	isEditing: false,
-	actions: {
-		edit: function() {
-			this.set('isEditing', true);
-		},
-		save: function() {
-			this.content.save();
-			this.set('isEditing', false);
-		},
-		cancel: function() {
-			thi.set('isEditing', false);
-			this.content.rollback();
-		},
-		add: function() {
-			console.log("2 add");
-			var id = $("#id").val();
-			var name = $("#name").val();
-			var desc = $("#desc").val();
-			var store = this.get('store');
-			var system = store.createRecord('system', {
-				id: id,
-				name: name,
-				desc: desc
-			});
-			system.save();
-		}
-	}
-});
-
-
-App.SystemAdapter = DS.RESTAdapter.extend({
-	bulkCommit: false,
-	host: 'http://127.0.0.1:5000',
-	namespace: "api/v1"
-})
+Ember.Handlebars.helper('edit-system', App.EditSystemView);

@@ -5,7 +5,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   1.13.5
+ * @version   1.13.2
  */
 
 (function() {
@@ -297,46 +297,15 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
   
     @method deprecateFunc
     @param {String} message A description of the deprecation.
-    @param {Object} [options] The options object for Ember.deprecate.
     @param {Function} func The new function called to replace its deprecated counterpart.
     @return {Function} a new function that wrapped the original function with a deprecation warning
     @private
   */
-  _emberMetalCore["default"].deprecateFunc = function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    if (args.length === 3) {
-      var _ret = (function () {
-        var message = args[0];
-        var options = args[1];
-        var func = args[2];
-
-        return {
-          v: function () {
-            _emberMetalCore["default"].deprecate(message, false, options);
-            return func.apply(this, arguments);
-          }
-        };
-      })();
-
-      if (typeof _ret === "object") return _ret.v;
-    } else {
-      var _ret2 = (function () {
-        var message = args[0];
-        var func = args[1];
-
-        return {
-          v: function () {
-            _emberMetalCore["default"].deprecate(message);
-            return func.apply(this, arguments);
-          }
-        };
-      })();
-
-      if (typeof _ret2 === "object") return _ret2.v;
-    }
+  _emberMetalCore["default"].deprecateFunc = function (message, func) {
+    return function () {
+      _emberMetalCore["default"].deprecate(message);
+      return func.apply(this, arguments);
+    };
   };
 
   /**
@@ -344,10 +313,10 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
     `Ember.runInDebug()` when doing a production build.
   
     ```javascript
-    Ember.runInDebug(() => {
-      Ember.Component.reopen({
-        didInsertElement() {
-          console.log("I'm happy");
+    Ember.runInDebug(function() {
+      Ember.Handlebars.EachView.reopen({
+        didInsertElement: function() {
+          console.log('I\'m happy');
         }
       });
     });
@@ -391,7 +360,10 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
     _emberMetalCore["default"].FEATURES["features-stripped-test"] = true;
     var featuresWereStripped = true;
 
-    
+    if (_emberMetalCore["default"].FEATURES.isEnabled("features-stripped-test")) {
+      featuresWereStripped = false;
+    }
+
     delete _emberMetalCore["default"].FEATURES["features-stripped-test"];
     _warnIfUsingStrippedFeatureFlags(_emberMetalCore["default"].ENV.FEATURES, featuresWereStripped);
 
@@ -440,15 +412,15 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
 /*global __fail__*/
 enifed('ember-debug/deprecation-manager', ['exports', 'ember-metal/dictionary', 'ember-metal/utils'], function (exports, _emberMetalDictionary, _emberMetalUtils) {
   var deprecationLevels = {
-    RAISE: _emberMetalUtils.symbol('RAISE'),
-    LOG: _emberMetalUtils.symbol('LOG'),
-    SILENCE: _emberMetalUtils.symbol('SILENCE')
+    RAISE: (0, _emberMetalUtils.symbol)('RAISE'),
+    LOG: (0, _emberMetalUtils.symbol)('LOG'),
+    SILENCE: (0, _emberMetalUtils.symbol)('SILENCE')
   };
 
   exports.deprecationLevels = deprecationLevels;
   exports["default"] = {
     defaultLevel: deprecationLevels.LOG,
-    individualLevels: _emberMetalDictionary["default"](null),
+    individualLevels: (0, _emberMetalDictionary["default"])(null),
     setDefaultLevel: function (level) {
       this.defaultLevel = level;
     },
@@ -504,6 +476,8 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
 
   _emberMetalCore["default"].generateGuid = _emberMetalUtils.generateGuid;
   _emberMetalCore["default"].GUID_KEY = _emberMetalUtils.GUID_KEY;
+  _emberMetalCore["default"].create = _emberMetalPlatformCreate["default"];
+  _emberMetalCore["default"].keys = _emberMetalKeys["default"];
   _emberMetalCore["default"].platform = {
     defineProperty: _emberMetalProperties.defineProperty,
     hasPropertyAccessors: _emberMetalPlatformDefine_property.hasPropertyAccessors
@@ -602,16 +576,20 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
   _emberMetalCore["default"].addObserver = _emberMetalObserver.addObserver;
   _emberMetalCore["default"].observersFor = _emberMetalObserver.observersFor;
   _emberMetalCore["default"].removeObserver = _emberMetalObserver.removeObserver;
+  _emberMetalCore["default"].addBeforeObserver = _emberMetalObserver.addBeforeObserver;
   _emberMetalCore["default"]._suspendBeforeObserver = _emberMetalObserver._suspendBeforeObserver;
   _emberMetalCore["default"]._suspendBeforeObservers = _emberMetalObserver._suspendBeforeObservers;
   _emberMetalCore["default"]._suspendObserver = _emberMetalObserver._suspendObserver;
   _emberMetalCore["default"]._suspendObservers = _emberMetalObserver._suspendObservers;
+  _emberMetalCore["default"].beforeObserversFor = _emberMetalObserver.beforeObserversFor;
+  _emberMetalCore["default"].removeBeforeObserver = _emberMetalObserver.removeBeforeObserver;
 
   _emberMetalCore["default"].IS_BINDING = _emberMetalMixin.IS_BINDING;
   _emberMetalCore["default"].required = _emberMetalMixin.required;
   _emberMetalCore["default"].aliasMethod = _emberMetalMixin.aliasMethod;
   _emberMetalCore["default"].observer = _emberMetalMixin.observer;
-  _emberMetalCore["default"].immediateObserver = _emberMetalMixin._immediateObserver;
+  _emberMetalCore["default"].immediateObserver = _emberMetalMixin.immediateObserver;
+  _emberMetalCore["default"].beforeObserver = _emberMetalMixin.beforeObserver;
   _emberMetalCore["default"].mixin = _emberMetalMixin.mixin;
   _emberMetalCore["default"].Mixin = _emberMetalMixin.Mixin;
 
@@ -642,7 +620,23 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
 
   _emberMetalCore["default"].merge = _emberMetalMerge["default"];
 
-  
+  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-metal-stream")) {
+    _emberMetalCore["default"].stream = {
+      Stream: _emberMetalStreamsStream["default"],
+
+      isStream: _emberMetalStreamsUtils.isStream,
+      subscribe: _emberMetalStreamsUtils.subscribe,
+      unsubscribe: _emberMetalStreamsUtils.unsubscribe,
+      read: _emberMetalStreamsUtils.read,
+      readHash: _emberMetalStreamsUtils.readHash,
+      readArray: _emberMetalStreamsUtils.readArray,
+      scanArray: _emberMetalStreamsUtils.scanArray,
+      scanHash: _emberMetalStreamsUtils.scanHash,
+      concat: _emberMetalStreamsUtils.concat,
+      chain: _emberMetalStreamsUtils.chain
+    };
+  }
+
   /**
     A function may be assigned to `Ember.onerror` to be called when Ember
     internals encounter an error. This is useful for specialized error handling
@@ -669,18 +663,9 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
 
   // do this for side-effects of updating Ember.assert, warn, etc when
   // ember-debug is present
-  // This needs to be called before any deprecateFunc
   if (_emberMetalCore["default"].__loader.registry["ember-debug"]) {
     requireModule("ember-debug");
   }
-
-  _emberMetalCore["default"].create = _emberMetalCore["default"].deprecateFunc("Ember.create is deprecated in favor of Object.create", _emberMetalPlatformCreate["default"]);
-  _emberMetalCore["default"].keys = _emberMetalCore["default"].deprecateFunc("Ember.keys is deprecated in favor of Object.keys", _emberMetalKeys["default"]);
-
-  _emberMetalCore["default"].addBeforeObserver = _emberMetalCore["default"].deprecateFunc("Ember.addBeforeObserver is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalObserver._addBeforeObserver);
-  _emberMetalCore["default"].removeBeforeObserver = _emberMetalCore["default"].deprecateFunc("Ember.removeBeforeObserver is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalObserver._removeBeforeObserver);
-  _emberMetalCore["default"].beforeObserversFor = _emberMetalCore["default"].deprecateFunc("Ember.beforeObserversFor is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalObserver._beforeObserversFor);
-  _emberMetalCore["default"].beforeObserver = _emberMetalCore["default"].deprecateFunc("Ember.beforeObserver is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalMixin._beforeObserver);
 
   exports["default"] = _emberMetalCore["default"];
 });
@@ -704,36 +689,36 @@ enifed("ember-metal/alias", ["exports", "ember-metal/property_get", "ember-metal
     this._dependentKeys = [altKey];
   }
 
-  AliasedProperty.prototype = _emberMetalPlatformCreate["default"](_emberMetalProperties.Descriptor.prototype);
+  AliasedProperty.prototype = (0, _emberMetalPlatformCreate["default"])(_emberMetalProperties.Descriptor.prototype);
 
   AliasedProperty.prototype.get = function AliasedProperty_get(obj, keyName) {
-    return _emberMetalProperty_get.get(obj, this.altKey);
+    return (0, _emberMetalProperty_get.get)(obj, this.altKey);
   };
 
   AliasedProperty.prototype.set = function AliasedProperty_set(obj, keyName, value) {
-    return _emberMetalProperty_set.set(obj, this.altKey, value);
+    return (0, _emberMetalProperty_set.set)(obj, this.altKey, value);
   };
 
   AliasedProperty.prototype.willWatch = function (obj, keyName) {
-    _emberMetalDependent_keys.addDependentKeys(this, obj, keyName, _emberMetalUtils.meta(obj));
+    (0, _emberMetalDependent_keys.addDependentKeys)(this, obj, keyName, (0, _emberMetalUtils.meta)(obj));
   };
 
   AliasedProperty.prototype.didUnwatch = function (obj, keyName) {
-    _emberMetalDependent_keys.removeDependentKeys(this, obj, keyName, _emberMetalUtils.meta(obj));
+    (0, _emberMetalDependent_keys.removeDependentKeys)(this, obj, keyName, (0, _emberMetalUtils.meta)(obj));
   };
 
   AliasedProperty.prototype.setup = function (obj, keyName) {
     _emberMetalCore["default"].assert("Setting alias '" + keyName + "' on self", this.altKey !== keyName);
-    var m = _emberMetalUtils.meta(obj);
+    var m = (0, _emberMetalUtils.meta)(obj);
     if (m.watching[keyName]) {
-      _emberMetalDependent_keys.addDependentKeys(this, obj, keyName, m);
+      (0, _emberMetalDependent_keys.addDependentKeys)(this, obj, keyName, m);
     }
   };
 
   AliasedProperty.prototype.teardown = function (obj, keyName) {
-    var m = _emberMetalUtils.meta(obj);
+    var m = (0, _emberMetalUtils.meta)(obj);
     if (m.watching[keyName]) {
-      _emberMetalDependent_keys.removeDependentKeys(this, obj, keyName, m);
+      (0, _emberMetalDependent_keys.removeDependentKeys)(this, obj, keyName, m);
     }
   };
 
@@ -743,7 +728,7 @@ enifed("ember-metal/alias", ["exports", "ember-metal/property_get", "ember-metal
   };
 
   function AliasedProperty_readOnlySet(obj, keyName, value) {
-    throw new _emberMetalError["default"]("Cannot set read-only property '" + keyName + "' on object: " + _emberMetalUtils.inspect(obj));
+    throw new _emberMetalError["default"]("Cannot set read-only property '" + keyName + "' on object: " + (0, _emberMetalUtils.inspect)(obj));
   }
 
   AliasedProperty.prototype.oneWay = function () {
@@ -752,8 +737,8 @@ enifed("ember-metal/alias", ["exports", "ember-metal/property_get", "ember-metal
   };
 
   function AliasedProperty_oneWaySet(obj, keyName, value) {
-    _emberMetalProperties.defineProperty(obj, keyName, null);
-    return _emberMetalProperty_set.set(obj, keyName, value);
+    (0, _emberMetalProperties.defineProperty)(obj, keyName, null);
+    return (0, _emberMetalProperty_set.set)(obj, keyName, value);
   }
 
   // Backwards compatibility with Ember Data
@@ -935,7 +920,7 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
   */
 
   function getWithGlobals(obj, path) {
-    return _emberMetalProperty_get.get(_emberMetalPath_cache.isGlobal(path) ? _emberMetalCore["default"].lookup : obj, path);
+    return (0, _emberMetalProperty_get.get)((0, _emberMetalPath_cache.isGlobal)(path) ? _emberMetalCore["default"].lookup : obj, path);
   }
 
   // ..........................................................
@@ -1030,7 +1015,7 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
     */
     toString: function () {
       var oneWay = this._oneWay ? "[oneWay]" : "";
-      return "Ember.Binding<" + _emberMetalUtils.guidFor(this) + ">(" + this._from + " -> " + this._to + ")" + oneWay;
+      return "Ember.Binding<" + (0, _emberMetalUtils.guidFor)(this) + ">(" + this._from + " -> " + this._to + ")" + oneWay;
     },
 
     // ..........................................................
@@ -1051,14 +1036,14 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
 
       var fromPath = this._from;
       var toPath = this._to;
-      _emberMetalProperty_set.trySet(obj, toPath, getWithGlobals(obj, fromPath));
+      (0, _emberMetalProperty_set.trySet)(obj, toPath, getWithGlobals(obj, fromPath));
 
       // add an observer on the object to be notified when the binding should be updated
-      _emberMetalObserver.addObserver(obj, fromPath, this, this.fromDidChange);
+      (0, _emberMetalObserver.addObserver)(obj, fromPath, this, this.fromDidChange);
 
       // if the binding is a two-way binding, also set up an observer on the target
       if (!this._oneWay) {
-        _emberMetalObserver.addObserver(obj, toPath, this, this.toDidChange);
+        (0, _emberMetalObserver.addObserver)(obj, toPath, this, this.toDidChange);
       }
 
       this._readyToSync = true;
@@ -1081,11 +1066,11 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
 
       // remove an observer on the object so we're no longer notified of
       // changes that should update bindings.
-      _emberMetalObserver.removeObserver(obj, this._from, this, this.fromDidChange);
+      (0, _emberMetalObserver.removeObserver)(obj, this._from, this, this.fromDidChange);
 
       // if the binding is two-way, remove the observer from the target as well
       if (twoWay) {
-        _emberMetalObserver.removeObserver(obj, this._to, this, this.toDidChange);
+        (0, _emberMetalObserver.removeObserver)(obj, this._to, this, this.toDidChange);
       }
 
       this._readyToSync = false; // disable scheduled syncs...
@@ -1146,20 +1131,20 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
           _emberMetalCore["default"].Logger.log(" ", this.toString(), "->", fromValue, obj);
         }
         if (this._oneWay) {
-          _emberMetalProperty_set.trySet(obj, toPath, fromValue);
+          (0, _emberMetalProperty_set.trySet)(obj, toPath, fromValue);
         } else {
-          _emberMetalObserver._suspendObserver(obj, toPath, this, this.toDidChange, function () {
-            _emberMetalProperty_set.trySet(obj, toPath, fromValue);
+          (0, _emberMetalObserver._suspendObserver)(obj, toPath, this, this.toDidChange, function () {
+            (0, _emberMetalProperty_set.trySet)(obj, toPath, fromValue);
           });
         }
         // if we're synchronizing *to* the remote object
       } else if (direction === "back") {
-        var toValue = _emberMetalProperty_get.get(obj, this._to);
+        var toValue = (0, _emberMetalProperty_get.get)(obj, this._to);
         if (log) {
           _emberMetalCore["default"].Logger.log(" ", this.toString(), "<-", toValue, obj);
         }
-        _emberMetalObserver._suspendObserver(obj, fromPath, this, this.fromDidChange, function () {
-          _emberMetalProperty_set.trySet(_emberMetalPath_cache.isGlobal(fromPath) ? _emberMetalCore["default"].lookup : obj, fromPath, toValue);
+        (0, _emberMetalObserver._suspendObserver)(obj, fromPath, this, this.fromDidChange, function () {
+          (0, _emberMetalProperty_set.trySet)((0, _emberMetalPath_cache.isGlobal)(fromPath) ? _emberMetalCore["default"].lookup : obj, fromPath, toValue);
         });
       }
     }
@@ -1209,11 +1194,9 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
         binding `oneWay`. You can instead pass `false` to disable `oneWay`, making the
         binding two way again.
       @return {Ember.Binding} `this`
-      @deprecated
       @public
     */
     oneWay: function (from, flag) {
-      _emberMetalCore["default"].deprecate("Ember.oneWay has been deprecated. Please use Ember.computed.oneWay instead.", false);
       var C = this;
       return new C(undefined, from).oneWay(flag);
     }
@@ -1394,7 +1377,7 @@ enifed('ember-metal/cache', ['exports', 'ember-metal/dictionary'], function (exp
   exports["default"] = Cache;
 
   function Cache(limit, func) {
-    this.store = _emberMetalDictionary["default"](null);
+    this.store = (0, _emberMetalDictionary["default"])(null);
     this.size = 0;
     this.misses = 0;
     this.hits = 0;
@@ -1436,7 +1419,7 @@ enifed('ember-metal/cache', ['exports', 'ember-metal/dictionary'], function (exp
     },
 
     purge: function () {
-      this.store = _emberMetalDictionary["default"](null);
+      this.store = (0, _emberMetalDictionary["default"])(null);
       this.size = 0;
       this.hits = 0;
       this.misses = 0;
@@ -1484,7 +1467,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
       return;
     }
 
-    var m = _emberMetalUtils.meta(obj);
+    var m = (0, _emberMetalUtils.meta)(obj);
     var nodes = m.chainWatchers;
 
     if (!m.hasOwnProperty("chainWatchers")) {
@@ -1496,7 +1479,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
       nodes[keyName] = [];
     }
     nodes[keyName].push(node);
-    _emberMetalWatch_key.watchKey(obj, keyName, m);
+    (0, _emberMetalWatch_key.watchKey)(obj, keyName, m);
   }
 
   function removeChainWatcher(obj, keyName, node) {
@@ -1520,7 +1503,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
         }
       }
     }
-    _emberMetalWatch_key.unwatchKey(obj, keyName, m);
+    (0, _emberMetalWatch_key.unwatchKey)(obj, keyName, m);
   }
 
   // A ChainNode watches a single key on an object. If you provide a starting
@@ -1569,7 +1552,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
     }
 
     if (key === "@each") {
-      return _emberMetalProperty_get.get(obj, key);
+      return (0, _emberMetalProperty_get.get)(obj, key);
     }
 
     // if a CP only return cached value
@@ -1583,7 +1566,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
       }
     }
 
-    return _emberMetalProperty_get.get(obj, key);
+    return (0, _emberMetalProperty_get.get)(obj, key);
   }
 
   ChainNode.prototype = {
@@ -1630,7 +1613,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
       paths[path] = (paths[path] || 0) + 1;
 
       obj = this.value();
-      tuple = _emberMetalProperty_get.normalizeTuple(obj, path);
+      tuple = (0, _emberMetalProperty_get.normalizeTuple)(obj, path);
 
       // the path was a local path
       if (tuple[0] && tuple[0] === obj) {
@@ -1667,7 +1650,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
       }
 
       obj = this.value();
-      tuple = _emberMetalProperty_get.normalizeTuple(obj, path);
+      tuple = (0, _emberMetalProperty_get.normalizeTuple)(obj, path);
       if (tuple[0] === obj) {
         path = tuple[1];
         key = firstKey(path);
@@ -1726,13 +1709,12 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
 
     willChange: function (events) {
       var chains = this._chains;
-      var node;
       if (chains) {
         for (var key in chains) {
-          node = chains[key];
-          if (node !== undefined) {
-            node.willChange(events);
+          if (!chains.hasOwnProperty(key)) {
+            continue;
           }
+          chains[key].willChange(events);
         }
       }
 
@@ -1835,10 +1817,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
           chainNodes = chainWatchers[key];
           if (chainNodes) {
             for (var i = 0, l = chainNodes.length; i < l; i++) {
-              var node = chainNodes[i];
-              if (node) {
-                node.didChange(null);
-              }
+              chainNodes[i].didChange(null);
             }
           }
         }
@@ -1846,7 +1825,7 @@ enifed("ember-metal/chains", ["exports", "ember-metal/core", "ember-metal/proper
       // copy chains from prototype
       chains = m.chains;
       if (chains && chains.value() !== obj) {
-        _emberMetalUtils.meta(obj).chains = chains = chains.copy(obj);
+        (0, _emberMetalUtils.meta)(obj).chains = chains = chains.copy(obj);
       }
     }
   }
@@ -2095,7 +2074,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
 
     args = [];
     for (var i = 0, l = arguments.length; i < l; i++) {
-      _emberMetalExpand_properties["default"](arguments[i], addArg);
+      (0, _emberMetalExpand_properties["default"])(arguments[i], addArg);
     }
 
     this._dependentKeys = args;
@@ -2145,7 +2124,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
       var meta = metaFor(obj);
       if (meta.cache && meta.cache[keyName] !== undefined) {
         meta.cache[keyName] = undefined;
-        _emberMetalDependent_keys.removeDependentKeys(this, obj, keyName, meta);
+        (0, _emberMetalDependent_keys.removeDependentKeys)(this, obj, keyName, meta);
       }
     }
   };
@@ -2212,7 +2191,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
       if (chainNodes) {
         finishChains(chainNodes);
       }
-      _emberMetalDependent_keys.addDependentKeys(this, obj, keyName, meta);
+      (0, _emberMetalDependent_keys.addDependentKeys)(this, obj, keyName, meta);
     } else {
       ret = this._getter.call(obj, keyName);
     }
@@ -2290,7 +2269,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
     var cachedValue, ret;
 
     if (this._readOnly) {
-      throw new _emberMetalError["default"]("Cannot set read-only property \"" + keyName + "\" on object: " + _emberMetalUtils.inspect(obj));
+      throw new _emberMetalError["default"]("Cannot set read-only property \"" + keyName + "\" on object: " + (0, _emberMetalUtils.inspect)(obj));
     }
 
     if (cacheable && cache && cache[keyName] !== undefined) {
@@ -2302,8 +2281,8 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
     }
 
     if (!setter) {
-      _emberMetalProperties.defineProperty(obj, keyName, null, cachedValue);
-      _emberMetalProperty_set.set(obj, keyName, value);
+      (0, _emberMetalProperties.defineProperty)(obj, keyName, null, cachedValue);
+      (0, _emberMetalProperty_set.set)(obj, keyName, value);
       return;
     } else if (setter.__ember_arity === 2) {
       // Is there any way of deprecate this in a sensitive way?
@@ -2319,7 +2298,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
 
     var watched = meta.watching[keyName];
     if (watched) {
-      _emberMetalProperty_events.propertyWillChange(obj, keyName);
+      (0, _emberMetalProperty_events.propertyWillChange)(obj, keyName);
     }
 
     if (hadCachedValue) {
@@ -2328,7 +2307,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
 
     if (cacheable) {
       if (!hadCachedValue) {
-        _emberMetalDependent_keys.addDependentKeys(this, obj, keyName, meta);
+        (0, _emberMetalDependent_keys.addDependentKeys)(this, obj, keyName, meta);
       }
       if (!cache) {
         cache = meta.cache = {};
@@ -2341,7 +2320,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
     }
 
     if (watched) {
-      _emberMetalProperty_events.propertyDidChange(obj, keyName);
+      (0, _emberMetalProperty_events.propertyDidChange)(obj, keyName);
     }
 
     return ret;
@@ -2353,7 +2332,7 @@ enifed("ember-metal/computed", ["exports", "ember-metal/property_set", "ember-me
 
     if (meta.cache) {
       if (keyName in meta.cache) {
-        _emberMetalDependent_keys.removeDependentKeys(this, obj, keyName, meta);
+        (0, _emberMetalDependent_keys.removeDependentKeys)(this, obj, keyName, meta);
       }
 
       if (this._cacheable) {
@@ -2509,7 +2488,7 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   function getProperties(self, propertyNames) {
     var ret = {};
     for (var i = 0; i < propertyNames.length; i++) {
-      ret[propertyNames[i]] = _emberMetalProperty_get.get(self, propertyNames[i]);
+      ret[propertyNames[i]] = (0, _emberMetalProperty_get.get)(self, propertyNames[i]);
     }
     return ret;
   }
@@ -2520,7 +2499,7 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
         properties[_key] = arguments[_key];
       }
 
-      var computedFunc = _emberMetalComputed.computed(function () {
+      var computedFunc = (0, _emberMetalComputed.computed)(function () {
         return macro.apply(this, [getProperties(this, properties)]);
       });
 
@@ -2558,8 +2537,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function empty(dependentKey) {
-    return _emberMetalComputed.computed(dependentKey + ".length", function () {
-      return _emberMetalIs_empty["default"](_emberMetalProperty_get.get(this, dependentKey));
+    return (0, _emberMetalComputed.computed)(dependentKey + ".length", function () {
+      return (0, _emberMetalIs_empty["default"])((0, _emberMetalProperty_get.get)(this, dependentKey));
     });
   }
 
@@ -2590,8 +2569,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function notEmpty(dependentKey) {
-    return _emberMetalComputed.computed(dependentKey + ".length", function () {
-      return !_emberMetalIs_empty["default"](_emberMetalProperty_get.get(this, dependentKey));
+    return (0, _emberMetalComputed.computed)(dependentKey + ".length", function () {
+      return !(0, _emberMetalIs_empty["default"])((0, _emberMetalProperty_get.get)(this, dependentKey));
     });
   }
 
@@ -2625,8 +2604,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function none(dependentKey) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return _emberMetalIs_none["default"](_emberMetalProperty_get.get(this, dependentKey));
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return (0, _emberMetalIs_none["default"])((0, _emberMetalProperty_get.get)(this, dependentKey));
     });
   }
 
@@ -2657,8 +2636,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function not(dependentKey) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return !_emberMetalProperty_get.get(this, dependentKey);
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return !(0, _emberMetalProperty_get.get)(this, dependentKey);
     });
   }
 
@@ -2691,8 +2670,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function bool(dependentKey) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return !!_emberMetalProperty_get.get(this, dependentKey);
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return !!(0, _emberMetalProperty_get.get)(this, dependentKey);
     });
   }
 
@@ -2727,8 +2706,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function match(dependentKey, regexp) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      var value = _emberMetalProperty_get.get(this, dependentKey);
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      var value = (0, _emberMetalProperty_get.get)(this, dependentKey);
 
       return typeof value === "string" ? regexp.test(value) : false;
     });
@@ -2764,8 +2743,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function equal(dependentKey, value) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return _emberMetalProperty_get.get(this, dependentKey) === value;
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return (0, _emberMetalProperty_get.get)(this, dependentKey) === value;
     });
   }
 
@@ -2799,8 +2778,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function gt(dependentKey, value) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return _emberMetalProperty_get.get(this, dependentKey) > value;
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return (0, _emberMetalProperty_get.get)(this, dependentKey) > value;
     });
   }
 
@@ -2834,8 +2813,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function gte(dependentKey, value) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return _emberMetalProperty_get.get(this, dependentKey) >= value;
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return (0, _emberMetalProperty_get.get)(this, dependentKey) >= value;
     });
   }
 
@@ -2869,8 +2848,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function lt(dependentKey, value) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return _emberMetalProperty_get.get(this, dependentKey) < value;
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return (0, _emberMetalProperty_get.get)(this, dependentKey) < value;
     });
   }
 
@@ -2904,8 +2883,8 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function lte(dependentKey, value) {
-    return _emberMetalComputed.computed(dependentKey, function () {
-      return _emberMetalProperty_get.get(this, dependentKey) <= value;
+    return (0, _emberMetalComputed.computed)(dependentKey, function () {
+      return (0, _emberMetalProperty_get.get)(this, dependentKey) <= value;
     });
   }
 
@@ -3054,7 +3033,7 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
     var res = _emberMetalCore["default"].A();
     for (var key in properties) {
       if (properties.hasOwnProperty(key)) {
-        if (_emberMetalIs_none["default"](properties[key])) {
+        if ((0, _emberMetalIs_none["default"])(properties[key])) {
           res.push(null);
         } else {
           res.push(properties[key]);
@@ -3128,7 +3107,7 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function oneWay(dependentKey) {
-    return _emberMetalAlias["default"](dependentKey).oneWay();
+    return (0, _emberMetalAlias["default"])(dependentKey).oneWay();
   }
 
   /**
@@ -3180,7 +3159,7 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function readOnly(dependentKey) {
-    return _emberMetalAlias["default"](dependentKey).readOnly();
+    return (0, _emberMetalAlias["default"])(dependentKey).readOnly();
   }
 
   /**
@@ -3213,15 +3192,15 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function defaultTo(defaultPath) {
-    return _emberMetalComputed.computed({
+    return (0, _emberMetalComputed.computed)({
       get: function (key) {
         _emberMetalCore["default"].deprecate("Usage of Ember.computed.defaultTo is deprecated, use `Ember.computed.oneWay` instead.");
-        return _emberMetalProperty_get.get(this, defaultPath);
+        return (0, _emberMetalProperty_get.get)(this, defaultPath);
       },
 
       set: function (key, newValue, cachedValue) {
         _emberMetalCore["default"].deprecate("Usage of Ember.computed.defaultTo is deprecated, use `Ember.computed.oneWay` instead.");
-        return newValue != null ? newValue : _emberMetalProperty_get.get(this, defaultPath);
+        return newValue != null ? newValue : (0, _emberMetalProperty_get.get)(this, defaultPath);
       }
     });
   }
@@ -3242,14 +3221,14 @@ enifed("ember-metal/computed_macros", ["exports", "ember-metal/core", "ember-met
   */
 
   function deprecatingAlias(dependentKey) {
-    return _emberMetalComputed.computed(dependentKey, {
+    return (0, _emberMetalComputed.computed)(dependentKey, {
       get: function (key) {
         _emberMetalCore["default"].deprecate("Usage of `" + key + "` is deprecated, use `" + dependentKey + "` instead.");
-        return _emberMetalProperty_get.get(this, dependentKey);
+        return (0, _emberMetalProperty_get.get)(this, dependentKey);
       },
       set: function (key, value) {
         _emberMetalCore["default"].deprecate("Usage of `" + key + "` is deprecated, use `" + dependentKey + "` instead.");
-        _emberMetalProperty_set.set(this, dependentKey, value);
+        (0, _emberMetalProperty_set.set)(this, dependentKey, value);
         return value;
       }
     });
@@ -3278,7 +3257,7 @@ enifed('ember-metal/core', ['exports'], function (exports) {
   
     @class Ember
     @static
-    @version 1.13.5
+    @version 1.13.2
     @public
   */
 
@@ -3310,11 +3289,11 @@ enifed('ember-metal/core', ['exports'], function (exports) {
   
     @property VERSION
     @type String
-    @default '1.13.5'
+    @default '1.13.2'
     @static
     @public
   */
-  Ember.VERSION = '1.13.5';
+  Ember.VERSION = '1.13.2';
 
   /**
     The hash of environment variables used to control various configuration
@@ -3497,12 +3476,8 @@ enifed('ember-metal/core', ['exports'], function (exports) {
     Ember.deprecate = K;
   }
   if ('undefined' === typeof Ember.deprecateFunc) {
-    Ember.deprecateFunc = function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      return args[args.length - 1];
+    Ember.deprecateFunc = function (_, func) {
+      return func;
     };
   }
 
@@ -3545,7 +3520,7 @@ enifed("ember-metal/dependent_keys", ["exports", "ember-metal/platform/create", 
     } else if (!depsMeta.hasOwnProperty(depKey)) {
       // otherwise if the dependency list is inherited from
       // a superclass, clone the hash
-      keys = depsMeta[depKey] = _emberMetalPlatformCreate["default"](keys);
+      keys = depsMeta[depKey] = (0, _emberMetalPlatformCreate["default"])(keys);
     }
     return keys;
   }
@@ -3572,7 +3547,7 @@ enifed("ember-metal/dependent_keys", ["exports", "ember-metal/platform/create", 
       // Increment the number of times depKey depends on keyName.
       keys[keyName] = (keys[keyName] || 0) + 1;
       // Watch the depKey
-      _emberMetalWatching.watch(obj, depKey, meta);
+      (0, _emberMetalWatching.watch)(obj, depKey, meta);
     }
   }
 
@@ -3594,7 +3569,7 @@ enifed("ember-metal/dependent_keys", ["exports", "ember-metal/platform/create", 
       // Decrement the number of times depKey depends on keyName.
       keys[keyName] = (keys[keyName] || 0) - 1;
       // Unwatch the depKey
-      _emberMetalWatching.unwatch(obj, depKey, meta);
+      (0, _emberMetalWatching.unwatch)(obj, depKey, meta);
     }
   }
 });
@@ -3619,16 +3594,16 @@ enifed("ember-metal/deprecate_property", ["exports", "ember-metal/core", "ember-
     }
 
     if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
-      _emberMetalProperties.defineProperty(object, deprecatedKey, {
+      (0, _emberMetalProperties.defineProperty)(object, deprecatedKey, {
         configurable: true,
         enumerable: false,
         set: function (value) {
           deprecate();
-          _emberMetalProperty_set.set(this, newKey, value);
+          (0, _emberMetalProperty_set.set)(this, newKey, value);
         },
         get: function () {
           deprecate();
-          return _emberMetalProperty_get.get(this, newKey);
+          return (0, _emberMetalProperty_get.get)(this, newKey);
         }
       });
     }
@@ -3648,7 +3623,7 @@ enifed('ember-metal/dictionary', ['exports', 'ember-metal/platform/create'], fun
   // only makes sense for long-lived dictionaries that aren't instantiated often.
 
   function makeDictionary(parent) {
-    var dict = _emberMetalPlatformCreate["default"](parent);
+    var dict = (0, _emberMetalPlatformCreate["default"])(parent);
     dict['_dict'] = null;
     delete dict['_dict'];
     return dict;
@@ -4024,7 +3999,7 @@ enifed('ember-metal/error', ['exports', 'ember-metal/platform/create'], function
     }
   }
 
-  EmberError.prototype = _emberMetalPlatformCreate["default"](Error.prototype);
+  EmberError.prototype = (0, _emberMetalPlatformCreate["default"])(Error.prototype);
 
   exports["default"] = EmberError;
 });
@@ -4080,16 +4055,16 @@ enifed("ember-metal/events", ["exports", "ember-metal/core", "ember-metal/utils"
   }
 
   function actionsFor(obj, eventName) {
-    var meta = _emberMetalUtils.meta(obj, true);
+    var meta = (0, _emberMetalUtils.meta)(obj, true);
     var actions;
     var listeners = meta.listeners;
 
     if (!listeners) {
-      listeners = meta.listeners = _emberMetalPlatformCreate["default"](null);
+      listeners = meta.listeners = (0, _emberMetalPlatformCreate["default"])(null);
       listeners.__source__ = obj;
     } else if (listeners.__source__ !== obj) {
       // setup inherited copy of the listeners object
-      listeners = meta.listeners = _emberMetalPlatformCreate["default"](listeners);
+      listeners = meta.listeners = (0, _emberMetalPlatformCreate["default"])(listeners);
       listeners.__source__ = obj;
     }
 
@@ -4265,7 +4240,7 @@ enifed("ember-metal/events", ["exports", "ember-metal/core", "ember-metal/utils"
       }
     }
 
-    return _emberMetalUtils.tryFinally(tryable, finalizer);
+    return (0, _emberMetalUtils.tryFinally)(tryable, finalizer);
   }
 
   /**
@@ -4315,7 +4290,7 @@ enifed("ember-metal/events", ["exports", "ember-metal/core", "ember-metal/utils"
       }
     }
 
-    return _emberMetalUtils.tryFinally(tryable, finalizer);
+    return (0, _emberMetalUtils.tryFinally)(tryable, finalizer);
   }
 
   /**
@@ -4392,13 +4367,13 @@ enifed("ember-metal/events", ["exports", "ember-metal/core", "ember-metal/utils"
       }
       if ("string" === typeof method) {
         if (params) {
-          _emberMetalUtils.applyStr(target, method, params);
+          (0, _emberMetalUtils.applyStr)(target, method, params);
         } else {
           target[method]();
         }
       } else {
         if (params) {
-          _emberMetalUtils.apply(target, method, params);
+          (0, _emberMetalUtils.apply)(target, method, params);
         } else {
           method.call(target);
         }
@@ -4588,7 +4563,7 @@ enifed("ember-metal/get_properties", ["exports", "ember-metal/property_get", "em
     @param {Object} obj
     @param {String...|Array} list of keys to get
     @return {Object}
-    @public
+    @private
   */
 
   function getProperties(obj) {
@@ -4596,12 +4571,12 @@ enifed("ember-metal/get_properties", ["exports", "ember-metal/property_get", "em
     var propertyNames = arguments;
     var i = 1;
 
-    if (arguments.length === 2 && _emberMetalUtils.isArray(arguments[1])) {
+    if (arguments.length === 2 && (0, _emberMetalUtils.isArray)(arguments[1])) {
       i = 0;
       propertyNames = arguments[1];
     }
     for (var len = propertyNames.length; i < len; i++) {
-      ret[propertyNames[i]] = _emberMetalProperty_get.get(obj, propertyNames[i]);
+      ret[propertyNames[i]] = (0, _emberMetalProperty_get.get)(obj, propertyNames[i]);
     }
     return ret;
   }
@@ -4636,7 +4611,7 @@ enifed("ember-metal/injected_property", ["exports", "ember-metal/core", "ember-m
     return this.container.lookup(desc.type + ":" + (desc.name || keyName));
   }
 
-  InjectedProperty.prototype = _emberMetalPlatformCreate["default"](_emberMetalProperties.Descriptor.prototype);
+  InjectedProperty.prototype = (0, _emberMetalPlatformCreate["default"])(_emberMetalProperties.Descriptor.prototype);
 
   var InjectedPropertyPrototype = InjectedProperty.prototype;
   var ComputedPropertyPrototype = _emberMetalComputed.ComputedProperty.prototype;
@@ -4767,7 +4742,7 @@ enifed("ember-metal/instrumentation", ["exports", "ember-metal/core", "ember-met
       var catchable = function _instrumentCatchable(e) {
         payload.exception = e;
       };
-      return _emberMetalUtils.tryCatchFinally(tryable, catchable, finalizer);
+      return (0, _emberMetalUtils.tryCatchFinally)(tryable, catchable, finalizer);
     } else {
       return callback.call(binding);
     }
@@ -4925,7 +4900,7 @@ enifed('ember-metal/is_blank', ['exports', 'ember-metal/is_empty'], function (ex
   */
 
   function isBlank(obj) {
-    return _emberMetalIs_empty["default"](obj) || typeof obj === 'string' && obj.match(/\S/) === null;
+    return (0, _emberMetalIs_empty["default"])(obj) || typeof obj === 'string' && obj.match(/\S/) === null;
   }
 });
 enifed('ember-metal/is_empty', ['exports', 'ember-metal/property_get', 'ember-metal/is_none'], function (exports, _emberMetalProperty_get, _emberMetalIs_none) {
@@ -4955,7 +4930,7 @@ enifed('ember-metal/is_empty', ['exports', 'ember-metal/property_get', 'ember-me
     @public
   */
   function isEmpty(obj) {
-    var none = _emberMetalIs_none["default"](obj);
+    var none = (0, _emberMetalIs_none["default"])(obj);
     if (none) {
       return none;
     }
@@ -4967,7 +4942,7 @@ enifed('ember-metal/is_empty', ['exports', 'ember-metal/property_get', 'ember-me
     var objectType = typeof obj;
 
     if (objectType === 'object') {
-      var size = _emberMetalProperty_get.get(obj, 'size');
+      var size = (0, _emberMetalProperty_get.get)(obj, 'size');
       if (typeof size === 'number') {
         return !size;
       }
@@ -4978,7 +4953,7 @@ enifed('ember-metal/is_empty', ['exports', 'ember-metal/property_get', 'ember-me
     }
 
     if (objectType === 'object') {
-      var length = _emberMetalProperty_get.get(obj, 'length');
+      var length = (0, _emberMetalProperty_get.get)(obj, 'length');
       if (typeof length === 'number') {
         return !length;
       }
@@ -5046,7 +5021,7 @@ enifed('ember-metal/is_present', ['exports', 'ember-metal/is_blank'], function (
   */
 
   function isPresent(obj) {
-    return !_emberMetalIs_blank["default"](obj);
+    return !(0, _emberMetalIs_blank["default"])(obj);
   }
 });
 enifed('ember-metal/keys', ['exports', 'ember-metal/platform/define_property'], function (exports, _emberMetalPlatformDefine_property) {
@@ -5153,20 +5128,25 @@ enifed("ember-metal/libraries", ["exports", "ember-metal/core", "ember-metal/enu
       var index;
 
       if (lib) {
-        index = _emberMetalEnumerable_utils.indexOf(this._registry, lib);
+        index = (0, _emberMetalEnumerable_utils.indexOf)(this._registry, lib);
         this._registry.splice(index, 1);
       }
     },
 
     each: function (callback) {
       _emberMetalCore["default"].deprecate("Using Ember.libraries.each() is deprecated. Access to a list of registered libraries is currently a private API. If you are not knowingly accessing this method, your out-of-date Ember Inspector may be doing so.");
-      _emberMetalEnumerable_utils.forEach(this._registry, function (lib) {
+      (0, _emberMetalEnumerable_utils.forEach)(this._registry, function (lib) {
         callback(lib.name, lib.version);
       });
     }
   };
 
-  
+  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-libraries-isregistered")) {
+    Libraries.prototype.isRegistered = function (name) {
+      return !!this._getLibraryByName(name);
+    };
+  }
+
   exports["default"] = Libraries;
 });
 enifed("ember-metal/logger", ["exports", "ember-metal/core", "ember-metal/error"], function (exports, _emberMetalCore, _emberMetalError) {
@@ -5319,7 +5299,7 @@ enifed("ember-metal/logger", ["exports", "ember-metal/core", "ember-metal/error"
 enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", "ember-metal/platform/create", "ember-metal/deprecate_property"], function (exports, _emberMetalUtils, _emberMetalArray, _emberMetalPlatformCreate, _emberMetalDeprecate_property) {
 
   function missingFunction(fn) {
-    throw new TypeError(Object.prototype.toString.call(fn) + " is not a function");
+    throw new TypeError("" + Object.prototype.toString.call(fn) + " is not a function");
   }
 
   function missingNew(name) {
@@ -5327,7 +5307,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
   }
 
   function copyNull(obj) {
-    var output = _emberMetalPlatformCreate["default"](null);
+    var output = (0, _emberMetalPlatformCreate["default"])(null);
 
     for (var prop in obj) {
       // hasOwnPropery is not needed because obj is Object.create(null);
@@ -5387,7 +5367,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
       @private
     */
     clear: function () {
-      this.presenceSet = _emberMetalPlatformCreate["default"](null);
+      this.presenceSet = (0, _emberMetalPlatformCreate["default"])(null);
       this.list = [];
       this.size = 0;
     },
@@ -5400,7 +5380,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
       @private
     */
     add: function (obj, _guid) {
-      var guid = _guid || _emberMetalUtils.guidFor(obj);
+      var guid = _guid || (0, _emberMetalUtils.guidFor)(obj);
       var presenceSet = this.presenceSet;
       var list = this.list;
 
@@ -5435,7 +5415,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
       @private
     */
     "delete": function (obj, _guid) {
-      var guid = _guid || _emberMetalUtils.guidFor(obj);
+      var guid = _guid || (0, _emberMetalUtils.guidFor)(obj);
       var presenceSet = this.presenceSet;
       var list = this.list;
 
@@ -5472,7 +5452,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
         return false;
       }
 
-      var guid = _emberMetalUtils.guidFor(obj);
+      var guid = (0, _emberMetalUtils.guidFor)(obj);
       var presenceSet = this.presenceSet;
 
       return presenceSet[guid] === true;
@@ -5535,7 +5515,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
     }
   };
 
-  _emberMetalDeprecate_property.deprecateProperty(OrderedSet.prototype, "length", "size");
+  (0, _emberMetalDeprecate_property.deprecateProperty)(OrderedSet.prototype, "length", "size");
 
   /**
     A Map stores values indexed by keys. Unlike JavaScript's
@@ -5561,7 +5541,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
     if (this instanceof this.constructor) {
       this._keys = OrderedSet.create();
       this._keys._silenceRemoveDeprecation = true;
-      this._values = _emberMetalPlatformCreate["default"](null);
+      this._values = (0, _emberMetalPlatformCreate["default"])(null);
       this.size = 0;
     } else {
       missingNew("OrderedSet");
@@ -5606,7 +5586,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
       }
 
       var values = this._values;
-      var guid = _emberMetalUtils.guidFor(key);
+      var guid = (0, _emberMetalUtils.guidFor)(key);
 
       return values[guid];
     },
@@ -5623,7 +5603,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
     set: function (key, value) {
       var keys = this._keys;
       var values = this._values;
-      var guid = _emberMetalUtils.guidFor(key);
+      var guid = (0, _emberMetalUtils.guidFor)(key);
 
       // ensure we don't store -0
       var k = key === -0 ? 0 : key;
@@ -5667,7 +5647,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
       // to use in browsers that are not ES6 friendly;
       var keys = this._keys;
       var values = this._values;
-      var guid = _emberMetalUtils.guidFor(key);
+      var guid = (0, _emberMetalUtils.guidFor)(key);
 
       if (keys["delete"](key, guid)) {
         delete values[guid];
@@ -5733,7 +5713,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
     */
     clear: function () {
       this._keys.clear();
-      this._values = _emberMetalPlatformCreate["default"](null);
+      this._values = (0, _emberMetalPlatformCreate["default"])(null);
       this.size = 0;
     },
 
@@ -5747,7 +5727,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
     }
   };
 
-  _emberMetalDeprecate_property.deprecateProperty(Map.prototype, "length", "size");
+  (0, _emberMetalDeprecate_property.deprecateProperty)(Map.prototype, "length", "size");
 
   /**
     @class MapWithDefault
@@ -5780,7 +5760,7 @@ enifed("ember-metal/map", ["exports", "ember-metal/utils", "ember-metal/array", 
     }
   };
 
-  MapWithDefault.prototype = _emberMetalPlatformCreate["default"](Map.prototype);
+  MapWithDefault.prototype = (0, _emberMetalPlatformCreate["default"])(Map.prototype);
   MapWithDefault.prototype.constructor = MapWithDefault;
   MapWithDefault.prototype._super$constructor = Map;
   MapWithDefault.prototype._super$get = Map.prototype.get;
@@ -5871,7 +5851,7 @@ enifed('ember-metal/merge', ['exports', 'ember-metal/keys'], function (exports, 
       return original;
     }
 
-    var props = _emberMetalKeys["default"](updates);
+    var props = (0, _emberMetalKeys["default"])(updates);
     var prop;
     var length = props.length;
 
@@ -5894,7 +5874,7 @@ enifed('ember-metal/merge', ['exports', 'ember-metal/keys'], function (exports, 
         continue;
       }
 
-      var updates = _emberMetalKeys["default"](arg);
+      var updates = (0, _emberMetalKeys["default"])(arg);
 
       for (var _i = 0, _l = updates.length; _i < _l; _i++) {
         var prop = updates[_i];
@@ -5910,8 +5890,8 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
   exports.required = required;
   exports.aliasMethod = aliasMethod;
   exports.observer = observer;
-  exports._immediateObserver = _immediateObserver;
-  exports._beforeObserver = _beforeObserver;
+  exports.immediateObserver = immediateObserver;
+  exports.beforeObserver = beforeObserver;
   // Remove "use strict"; from transpiled module until
   // https://bugs.webkit.org/show_bug.cgi?id=138038 is fixed
   //
@@ -5953,12 +5933,12 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
   superFunction.call(primer, 1, 2, 3);
 
   function mixinsMeta(obj) {
-    var m = _emberMetalUtils.meta(obj, true);
+    var m = (0, _emberMetalUtils.meta)(obj, true);
     var ret = m.mixins;
     if (!ret) {
       ret = m.mixins = {};
     } else if (!m.hasOwnProperty("mixins")) {
-      ret = m.mixins = _emberMetalPlatformCreate["default"](ret);
+      ret = m.mixins = (0, _emberMetalPlatformCreate["default"])(ret);
     }
     return ret;
   }
@@ -5973,7 +5953,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     var guid;
 
     if (mixin instanceof Mixin) {
-      guid = _emberMetalUtils.guidFor(mixin);
+      guid = (0, _emberMetalUtils.guidFor)(mixin);
       if (mixinsMeta[guid]) {
         return CONTINUE;
       }
@@ -6021,11 +6001,11 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     // Since multiple mixins may inherit from the same parent, we need
     // to clone the computed property so that other mixins do not receive
     // the wrapped version.
-    property = _emberMetalPlatformCreate["default"](property);
-    property._getter = _emberMetalUtils.wrap(property._getter, superProperty._getter);
+    property = (0, _emberMetalPlatformCreate["default"])(property);
+    property._getter = (0, _emberMetalUtils.wrap)(property._getter, superProperty._getter);
     if (superProperty._setter) {
       if (property._setter) {
-        property._setter = _emberMetalUtils.wrap(property._setter, superProperty._setter);
+        property._setter = (0, _emberMetalUtils.wrap)(property._setter, superProperty._setter);
       } else {
         property._setter = superProperty._setter;
       }
@@ -6067,7 +6047,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     }
 
     if (sourceAvailable === false || hasSuper) {
-      return _emberMetalUtils.wrap(method, superMethod);
+      return (0, _emberMetalUtils.wrap)(method, superMethod);
     } else {
       return method;
     }
@@ -6084,23 +6064,23 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
           return baseValue.concat(value);
         }
       } else {
-        return _emberMetalUtils.makeArray(baseValue).concat(value);
+        return (0, _emberMetalUtils.makeArray)(baseValue).concat(value);
       }
     } else {
-      return _emberMetalUtils.makeArray(value);
+      return (0, _emberMetalUtils.makeArray)(value);
     }
   }
 
   function applyMergedProperties(obj, key, value, values) {
     var baseValue = values[key] || obj[key];
 
-    _emberMetalCore["default"].assert("You passed in `" + JSON.stringify(value) + "` as the value for `" + key + "` but `" + key + "` cannot be an Array", !_emberMetalUtils.isArray(value));
+    _emberMetalCore["default"].assert("You passed in `" + JSON.stringify(value) + "` as the value for `" + key + "` but `" + key + "` cannot be an Array", !(0, _emberMetalUtils.isArray)(value));
 
     if (!baseValue) {
       return value;
     }
 
-    var newBase = _emberMetalMerge["default"]({}, baseValue);
+    var newBase = (0, _emberMetalMerge["default"])({}, baseValue);
     var hasFunction = false;
 
     for (var prop in value) {
@@ -6171,7 +6151,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
       }
 
       if (props) {
-        meta = _emberMetalUtils.meta(base);
+        meta = (0, _emberMetalUtils.meta)(base);
         if (base.willMergeMixin) {
           base.willMergeMixin(props);
         }
@@ -6207,7 +6187,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
       if (!bindings) {
         bindings = m.bindings = {};
       } else if (!m.hasOwnProperty("bindings")) {
-        bindings = m.bindings = _emberMetalPlatformCreate["default"](m.bindings);
+        bindings = m.bindings = (0, _emberMetalPlatformCreate["default"])(m.bindings);
       }
       bindings[key] = value;
     }
@@ -6215,24 +6195,24 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
 
   function connectStreamBinding(obj, key, stream) {
     var onNotify = function (stream) {
-      _emberMetalObserver._suspendObserver(obj, key, null, didChange, function () {
-        _emberMetalProperty_set.trySet(obj, key, stream.value());
+      (0, _emberMetalObserver._suspendObserver)(obj, key, null, didChange, function () {
+        (0, _emberMetalProperty_set.trySet)(obj, key, stream.value());
       });
     };
 
     var didChange = function () {
-      stream.setValue(_emberMetalProperty_get.get(obj, key), onNotify);
+      stream.setValue((0, _emberMetalProperty_get.get)(obj, key), onNotify);
     };
 
     // Initialize value
-    _emberMetalProperty_set.set(obj, key, stream.value());
+    (0, _emberMetalProperty_set.set)(obj, key, stream.value());
 
-    _emberMetalObserver.addObserver(obj, key, null, didChange);
+    (0, _emberMetalObserver.addObserver)(obj, key, null, didChange);
 
     stream.subscribe(onNotify);
 
     if (obj._streamBindingSubscriptions === undefined) {
-      obj._streamBindingSubscriptions = _emberMetalPlatformCreate["default"](null);
+      obj._streamBindingSubscriptions = (0, _emberMetalPlatformCreate["default"])(null);
     }
 
     obj._streamBindingSubscriptions[key] = onNotify;
@@ -6247,7 +6227,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
         binding = bindings[key];
         if (binding) {
           to = key.slice(0, -7); // strip Binding off end
-          if (_emberMetalStreamsUtils.isStream(binding)) {
+          if ((0, _emberMetalStreamsUtils.isStream)(binding)) {
             connectStreamBinding(obj, to, binding);
             continue;
           } else if (binding instanceof _emberMetalBinding.Binding) {
@@ -6267,7 +6247,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
   }
 
   function finishPartial(obj, m) {
-    connectBindings(obj, m || _emberMetalUtils.meta(obj));
+    connectBindings(obj, m || (0, _emberMetalUtils.meta)(obj));
     return obj;
   }
 
@@ -6303,13 +6283,13 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     var prev = obj[key];
 
     if ("function" === typeof prev) {
-      updateObserversAndListeners(obj, key, prev, "__ember_observesBefore__", _emberMetalObserver._removeBeforeObserver);
+      updateObserversAndListeners(obj, key, prev, "__ember_observesBefore__", _emberMetalObserver.removeBeforeObserver);
       updateObserversAndListeners(obj, key, prev, "__ember_observes__", _emberMetalObserver.removeObserver);
       updateObserversAndListeners(obj, key, prev, "__ember_listens__", _emberMetalEvents.removeListener);
     }
 
     if ("function" === typeof observerOrListener) {
-      updateObserversAndListeners(obj, key, observerOrListener, "__ember_observesBefore__", _emberMetalObserver._addBeforeObserver);
+      updateObserversAndListeners(obj, key, observerOrListener, "__ember_observesBefore__", _emberMetalObserver.addBeforeObserver);
       updateObserversAndListeners(obj, key, observerOrListener, "__ember_observes__", _emberMetalObserver.addObserver);
       updateObserversAndListeners(obj, key, observerOrListener, "__ember_listens__", _emberMetalEvents.addListener);
     }
@@ -6318,7 +6298,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
   function applyMixin(obj, mixins, partial) {
     var descs = {};
     var values = {};
-    var m = _emberMetalUtils.meta(obj);
+    var m = (0, _emberMetalUtils.meta)(obj);
     var keys = [];
     var key, value, desc;
 
@@ -6358,7 +6338,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
 
       replaceObserversAndListeners(obj, key, value);
       detectBinding(obj, key, value, m);
-      _emberMetalProperties.defineProperty(obj, key, desc, value, m);
+      (0, _emberMetalProperties.defineProperty)(obj, key, desc, value, m);
     }
 
     if (!partial) {
@@ -6487,14 +6467,13 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     @public
   */
   Mixin.create = function () {
-    // ES6TODO: this relies on a global state?
-    _emberMetalCore["default"].anyUnprocessedMixins = true;
-    var M = this;
-
     for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
       args[_key2] = arguments[_key2];
     }
 
+    // ES6TODO: this relies on a global state?
+    _emberMetalCore["default"].anyUnprocessedMixins = true;
+    var M = this;
     return new M(args, undefined);
   };
 
@@ -6549,7 +6528,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
   };
 
   function _detect(curMixin, targetMixin, seen) {
-    var guid = _emberMetalUtils.guidFor(curMixin);
+    var guid = (0, _emberMetalUtils.guidFor)(curMixin);
 
     if (seen[guid]) {
       return false;
@@ -6585,27 +6564,26 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     var m = obj["__ember_meta__"];
     var mixins = m && m.mixins;
     if (mixins) {
-      return !!mixins[_emberMetalUtils.guidFor(this)];
+      return !!mixins[(0, _emberMetalUtils.guidFor)(this)];
     }
     return false;
   };
 
   MixinPrototype.without = function () {
-    var ret = new Mixin([this]);
-
     for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
       args[_key3] = arguments[_key3];
     }
 
+    var ret = new Mixin([this]);
     ret._without = args;
     return ret;
   };
 
   function _keys(ret, mixin, seen) {
-    if (seen[_emberMetalUtils.guidFor(mixin)]) {
+    if (seen[(0, _emberMetalUtils.guidFor)(mixin)]) {
       return;
     }
-    seen[_emberMetalUtils.guidFor(mixin)] = true;
+    seen[(0, _emberMetalUtils.guidFor)(mixin)] = true;
 
     if (mixin.properties) {
       var props = mixin.properties;
@@ -6750,7 +6728,6 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
 
     if (typeof func !== "function") {
       // revert to old, soft-deprecated argument ordering
-      _emberMetalCore["default"].deprecate("Passing the dependentKeys after the callback function in Ember.observer is deprecated. Ensure the callback function is the last argument.");
 
       func = args[0];
       _paths = args.slice(1);
@@ -6759,7 +6736,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     paths = [];
 
     for (var i = 0; i < _paths.length; ++i) {
-      _emberMetalExpand_properties["default"](_paths[i], addWatchedProperty);
+      (0, _emberMetalExpand_properties["default"])(_paths[i], addWatchedProperty);
     }
 
     if (typeof func !== "function") {
@@ -6787,7 +6764,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     Also available as `Function.prototype.observesImmediately` if prototype extensions are
     enabled.
   
-    @method _immediateObserver
+    @method immediateObserver
     @for Ember
     @param {String} propertyNames*
     @param {Function} func
@@ -6796,7 +6773,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     @private
   */
 
-  function _immediateObserver() {
+  function immediateObserver() {
     _emberMetalCore["default"].deprecate("Usage of `Ember.immediateObserver` is deprecated, use `Ember.observer` instead.");
 
     for (var i = 0, l = arguments.length; i < l; i++) {
@@ -6813,9 +6790,9 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     Note, `@each.property` observer is called per each add or replace of an element
     and it's not called with a specific enumeration item.
   
-    A `_beforeObserver` fires before a property changes.
+    A `beforeObserver` fires before a property changes.
   
-    A `_beforeObserver` is an alternative form of `.observesBefore()`.
+    A `beforeObserver` is an alternative form of `.observesBefore()`.
   
     ```javascript
     App.PersonView = Ember.View.extend({
@@ -6848,11 +6825,10 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     @param {String} propertyNames*
     @param {Function} func
     @return func
-    @deprecated
     @private
   */
 
-  function _beforeObserver() {
+  function beforeObserver() {
     for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
       args[_key5] = arguments[_key5];
     }
@@ -6876,7 +6852,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     paths = [];
 
     for (var i = 0; i < _paths.length; ++i) {
-      _emberMetalExpand_properties["default"](_paths[i], addWatchedProperty);
+      (0, _emberMetalExpand_properties["default"])(_paths[i], addWatchedProperty);
     }
 
     if (typeof func !== "function") {
@@ -6902,13 +6878,13 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
   exports.addObserver = addObserver;
   exports.observersFor = observersFor;
   exports.removeObserver = removeObserver;
-  exports._addBeforeObserver = _addBeforeObserver;
+  exports.addBeforeObserver = addBeforeObserver;
   exports._suspendBeforeObserver = _suspendBeforeObserver;
   exports._suspendObserver = _suspendObserver;
   exports._suspendBeforeObservers = _suspendBeforeObservers;
   exports._suspendObservers = _suspendObservers;
-  exports._beforeObserversFor = _beforeObserversFor;
-  exports._removeBeforeObserver = _removeBeforeObserver;
+  exports.beforeObserversFor = beforeObserversFor;
+  exports.removeBeforeObserver = removeBeforeObserver;
 
   /**
   @module ember-metal
@@ -6936,14 +6912,14 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
   */
 
   function addObserver(obj, _path, target, method) {
-    _emberMetalEvents.addListener(obj, changeEvent(_path), target, method);
-    _emberMetalWatching.watch(obj, _path);
+    (0, _emberMetalEvents.addListener)(obj, changeEvent(_path), target, method);
+    (0, _emberMetalWatching.watch)(obj, _path);
 
     return this;
   }
 
   function observersFor(obj, path) {
-    return _emberMetalEvents.listenersFor(obj, changeEvent(path));
+    return (0, _emberMetalEvents.listenersFor)(obj, changeEvent(path));
   }
 
   /**
@@ -6957,26 +6933,25 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
   */
 
   function removeObserver(obj, path, target, method) {
-    _emberMetalWatching.unwatch(obj, path);
-    _emberMetalEvents.removeListener(obj, changeEvent(path), target, method);
+    (0, _emberMetalWatching.unwatch)(obj, path);
+    (0, _emberMetalEvents.removeListener)(obj, changeEvent(path), target, method);
 
     return this;
   }
 
   /**
-    @method _addBeforeObserver
+    @method addBeforeObserver
     @for Ember
     @param obj
     @param {String} path
     @param {Object|Function} target
     @param {Function|String} [method]
-    @deprecated
     @private
   */
 
-  function _addBeforeObserver(obj, path, target, method) {
-    _emberMetalEvents.addListener(obj, beforeEvent(path), target, method);
-    _emberMetalWatching.watch(obj, path);
+  function addBeforeObserver(obj, path, target, method) {
+    (0, _emberMetalEvents.addListener)(obj, beforeEvent(path), target, method);
+    (0, _emberMetalWatching.watch)(obj, path);
 
     return this;
   }
@@ -6987,25 +6962,25 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
   // while it is setting the observed path.
 
   function _suspendBeforeObserver(obj, path, target, method, callback) {
-    return _emberMetalEvents.suspendListener(obj, beforeEvent(path), target, method, callback);
+    return (0, _emberMetalEvents.suspendListener)(obj, beforeEvent(path), target, method, callback);
   }
 
   function _suspendObserver(obj, path, target, method, callback) {
-    return _emberMetalEvents.suspendListener(obj, changeEvent(path), target, method, callback);
+    return (0, _emberMetalEvents.suspendListener)(obj, changeEvent(path), target, method, callback);
   }
 
   function _suspendBeforeObservers(obj, paths, target, method, callback) {
     var events = _emberMetalArray.map.call(paths, beforeEvent);
-    return _emberMetalEvents.suspendListeners(obj, events, target, method, callback);
+    return (0, _emberMetalEvents.suspendListeners)(obj, events, target, method, callback);
   }
 
   function _suspendObservers(obj, paths, target, method, callback) {
     var events = _emberMetalArray.map.call(paths, changeEvent);
-    return _emberMetalEvents.suspendListeners(obj, events, target, method, callback);
+    return (0, _emberMetalEvents.suspendListeners)(obj, events, target, method, callback);
   }
 
-  function _beforeObserversFor(obj, path) {
-    return _emberMetalEvents.listenersFor(obj, beforeEvent(path));
+  function beforeObserversFor(obj, path) {
+    return (0, _emberMetalEvents.listenersFor)(obj, beforeEvent(path));
   }
 
   /**
@@ -7015,13 +6990,12 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
     @param {String} path
     @param {Object|Function} target
     @param {Function|String} [method]
-    @deprecated
     @private
   */
 
-  function _removeBeforeObserver(obj, path, target, method) {
-    _emberMetalWatching.unwatch(obj, path);
-    _emberMetalEvents.removeListener(obj, beforeEvent(path), target, method);
+  function removeBeforeObserver(obj, path, target, method) {
+    (0, _emberMetalWatching.unwatch)(obj, path);
+    (0, _emberMetalEvents.removeListener)(obj, beforeEvent(path), target, method);
 
     return this;
   }
@@ -7055,7 +7029,7 @@ enifed("ember-metal/observer_set", ["exports", "ember-metal/utils", "ember-metal
   ObserverSet.prototype.add = function (sender, keyName, eventName) {
     var observerSet = this.observerSet;
     var observers = this.observers;
-    var senderGuid = _emberMetalUtils.guidFor(sender);
+    var senderGuid = (0, _emberMetalUtils.guidFor)(sender);
     var keySet = observerSet[senderGuid];
     var index;
 
@@ -7085,7 +7059,7 @@ enifed("ember-metal/observer_set", ["exports", "ember-metal/utils", "ember-metal
       if (sender.isDestroying || sender.isDestroyed) {
         continue;
       }
-      _emberMetalEvents.sendEvent(sender, observer.eventName, [sender, observer.keyName], observer.listeners);
+      (0, _emberMetalEvents.sendEvent)(sender, observer.eventName, [sender, observer.keyName], observer.listeners);
     }
   };
 
@@ -7265,7 +7239,7 @@ enifed('ember-metal/platform/create', ['exports', 'ember-metal/platform/define_p
       }
 
       if (properties !== undefined) {
-        _emberMetalPlatformDefine_properties["default"](object, properties);
+        (0, _emberMetalPlatformDefine_properties["default"])(object, properties);
       }
 
       return object;
@@ -7286,7 +7260,7 @@ enifed("ember-metal/platform/define_properties", ["exports", "ember-metal/platfo
     defineProperties = function defineProperties(object, properties) {
       for (var property in properties) {
         if (properties.hasOwnProperty(property) && property !== "__proto__") {
-          _emberMetalPlatformDefine_property.defineProperty(object, property, properties[property]);
+          (0, _emberMetalPlatformDefine_property.defineProperty)(object, property, properties[property]);
         }
       }
       return object;
@@ -7528,7 +7502,7 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
     var possibleDesc, existingDesc, watching, value;
 
     if (!meta) {
-      meta = _emberMetalUtils.meta(obj);
+      meta = (0, _emberMetalUtils.meta)(obj);
     }
     var watchEntry = meta.watching[keyName];
     possibleDesc = obj[keyName];
@@ -7543,9 +7517,9 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
     if (desc instanceof Descriptor) {
       value = desc;
 
-      
+      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
         if (watching && _emberMetalPlatformDefine_property.hasPropertyAccessors) {
-          _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
+          (0, _emberMetalPlatformDefine_property.defineProperty)(obj, keyName, {
             configurable: true,
             enumerable: true,
             writable: true,
@@ -7554,17 +7528,20 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
         } else {
           obj[keyName] = value;
         }
-            if (desc.setup) {
+      } else {
+        obj[keyName] = value;
+      }
+      if (desc.setup) {
         desc.setup(obj, keyName);
       }
     } else {
       if (desc == null) {
         value = data;
 
-        
+        if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
           if (watching && _emberMetalPlatformDefine_property.hasPropertyAccessors) {
             meta.values[keyName] = data;
-            _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
+            (0, _emberMetalPlatformDefine_property.defineProperty)(obj, keyName, {
               configurable: true,
               enumerable: true,
               set: MANDATORY_SETTER_FUNCTION(keyName),
@@ -7573,18 +7550,21 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
           } else {
             obj[keyName] = data;
           }
-              } else {
+        } else {
+          obj[keyName] = data;
+        }
+      } else {
         value = desc;
 
         // compatibility with ES5
-        _emberMetalPlatformDefine_property.defineProperty(obj, keyName, desc);
+        (0, _emberMetalPlatformDefine_property.defineProperty)(obj, keyName, desc);
       }
     }
 
     // if key is being watched, override chains that
     // were initialized with the prototype
     if (watching) {
-      _emberMetalProperty_events.overrideChains(obj, keyName, meta);
+      (0, _emberMetalProperty_events.overrideChains)(obj, keyName, meta);
     }
 
     // The `value` passed to the `didDefineProperty` hook is
@@ -7600,7 +7580,7 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
 @module ember-metal
 */
 enifed("ember-metal/property_events", ["exports", "ember-metal/utils", "ember-metal/events", "ember-metal/observer_set"], function (exports, _emberMetalUtils, _emberMetalEvents, _emberMetalObserver_set) {
-  var PROPERTY_DID_CHANGE = _emberMetalUtils.symbol("PROPERTY_DID_CHANGE");
+  var PROPERTY_DID_CHANGE = (0, _emberMetalUtils.symbol)("PROPERTY_DID_CHANGE");
 
   exports.PROPERTY_DID_CHANGE = PROPERTY_DID_CHANGE;
   var beforeObserverSet = new _emberMetalObserver_set["default"]();
@@ -7758,7 +7738,7 @@ enifed("ember-metal/property_events", ["exports", "ember-metal/utils", "ember-me
 
   function iterDeps(method, obj, deps, depKey, seen, meta) {
     var keys, key, i, possibleDesc, desc;
-    var guid = _emberMetalUtils.guidFor(obj);
+    var guid = (0, _emberMetalUtils.guidFor)(obj);
     var current = seen[guid];
 
     if (!current) {
@@ -7870,7 +7850,7 @@ enifed("ember-metal/property_events", ["exports", "ember-metal/utils", "ember-me
   */
   function changeProperties(callback, binding) {
     beginPropertyChanges();
-    _emberMetalUtils.tryFinally(callback, endPropertyChanges, binding);
+    (0, _emberMetalUtils.tryFinally)(callback, endPropertyChanges, binding);
   }
 
   function notifyBeforeObservers(obj, keyName) {
@@ -7882,10 +7862,10 @@ enifed("ember-metal/property_events", ["exports", "ember-metal/utils", "ember-me
     var listeners, added;
     if (deferred) {
       listeners = beforeObserverSet.add(obj, keyName, eventName);
-      added = _emberMetalEvents.accumulateListeners(obj, eventName, listeners);
-      _emberMetalEvents.sendEvent(obj, eventName, [obj, keyName], added);
+      added = (0, _emberMetalEvents.accumulateListeners)(obj, eventName, listeners);
+      (0, _emberMetalEvents.sendEvent)(obj, eventName, [obj, keyName], added);
     } else {
-      _emberMetalEvents.sendEvent(obj, eventName, [obj, keyName]);
+      (0, _emberMetalEvents.sendEvent)(obj, eventName, [obj, keyName]);
     }
   }
 
@@ -7898,9 +7878,9 @@ enifed("ember-metal/property_events", ["exports", "ember-metal/utils", "ember-me
     var listeners;
     if (deferred) {
       listeners = observerSet.add(obj, keyName, eventName);
-      _emberMetalEvents.accumulateListeners(obj, eventName, listeners);
+      (0, _emberMetalEvents.accumulateListeners)(obj, eventName, listeners);
     } else {
-      _emberMetalEvents.sendEvent(obj, eventName, [obj, keyName]);
+      (0, _emberMetalEvents.sendEvent)(obj, eventName, [obj, keyName]);
     }
   }
 
@@ -7919,9 +7899,9 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
 
   var FIRST_KEY = /^([^\.]+)/;
 
-  var INTERCEPT_GET = _emberMetalUtils.symbol("INTERCEPT_GET");
+  var INTERCEPT_GET = (0, _emberMetalUtils.symbol)("INTERCEPT_GET");
   exports.INTERCEPT_GET = INTERCEPT_GET;
-  var UNHANDLED_GET = _emberMetalUtils.symbol("UNHANDLED_GET");
+  var UNHANDLED_GET = (0, _emberMetalUtils.symbol)("UNHANDLED_GET");
 
   exports.UNHANDLED_GET = UNHANDLED_GET;
   // ..........................................................
@@ -7958,14 +7938,12 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
   */
 
   function get(obj, keyName) {
-    _emberMetalCore["default"].deprecate("Get must be called with two arguments; an object and a property key", arguments.length === 2);
     // Helpers that operate with 'this' within an #each
     if (keyName === "") {
       return obj;
     }
 
     if (!keyName && "string" === typeof obj) {
-      _emberMetalCore["default"].deprecate("Calling Ember.get with only a property key has been deprecated, please also specify a target object.");
       keyName = obj;
       obj = _emberMetalCore["default"].lookup;
     }
@@ -7973,8 +7951,7 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     _emberMetalCore["default"].assert("Cannot call get with " + keyName + " key.", !!keyName);
     _emberMetalCore["default"].assert("Cannot call get with '" + keyName + "' on an undefined object.", obj !== undefined);
 
-    if (_emberMetalIs_none["default"](obj)) {
-      _emberMetalCore["default"].deprecate("Calling Ember.get without a target object has been deprecated, please specify a target object.");
+    if ((0, _emberMetalIs_none["default"])(obj)) {
       return _getPath(obj, keyName);
     }
 
@@ -7990,20 +7967,23 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     var desc = possibleDesc !== null && typeof possibleDesc === "object" && possibleDesc.isDescriptor ? possibleDesc : undefined;
     var ret;
 
-    if (desc === undefined && _emberMetalPath_cache.isPath(keyName)) {
+    if (desc === undefined && (0, _emberMetalPath_cache.isPath)(keyName)) {
       return _getPath(obj, keyName);
     }
 
     if (desc) {
       return desc.get(obj, keyName);
     } else {
-      
+      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors && meta && meta.watching[keyName] > 0) {
           ret = meta.values[keyName];
         } else {
           ret = obj[keyName];
         }
-      
+      } else {
+        ret = obj[keyName];
+      }
+
       if (ret === undefined && "object" === typeof obj && !(keyName in obj) && "function" === typeof obj.unknownProperty) {
         return obj.unknownProperty(keyName);
       }
@@ -8027,8 +8007,8 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
   */
 
   function normalizeTuple(target, path) {
-    var hasThis = _emberMetalPath_cache.hasThis(path);
-    var isGlobal = !hasThis && _emberMetalPath_cache.isGlobal(path);
+    var hasThis = (0, _emberMetalPath_cache.hasThis)(path);
+    var isGlobal = !hasThis && (0, _emberMetalPath_cache.isGlobal)(path);
     var key;
 
     if (!target && !isGlobal) {
@@ -8043,7 +8023,7 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
       target = _emberMetalCore["default"].lookup;
     }
 
-    if (isGlobal && _emberMetalPath_cache.isPath(path)) {
+    if (isGlobal && (0, _emberMetalPath_cache.isPath)(path)) {
       key = path.match(FIRST_KEY)[0];
       target = get(target, key);
       path = path.slice(key.length + 1);
@@ -8065,9 +8045,7 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     var hasThis, parts, tuple, idx, len;
 
     // detect complicated paths and normalize them
-    hasThis = _emberMetalPath_cache.hasThis(path);
-
-    _emberMetalCore["default"].deprecate("Ember.get with 'this' in the path has been deprecated. Please use the same path without 'this'.", !hasThis);
+    hasThis = (0, _emberMetalPath_cache.hasThis)(path);
 
     if (!root || hasThis) {
       tuple = normalizeTuple(root, path);
@@ -8079,7 +8057,7 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     parts = path.split(".");
     len = parts.length;
     for (idx = 0; root != null && idx < len; idx++) {
-      root = get(root, parts[idx]);
+      root = get(root, parts[idx], true);
       if (root && root.isDestroyed) {
         return undefined;
       }
@@ -8104,9 +8082,9 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
 enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/property_get", "ember-metal/property_events", "ember-metal/properties", "ember-metal/error", "ember-metal/path_cache", "ember-metal/platform/define_property", "ember-metal/utils"], function (exports, _emberMetalCore, _emberMetalProperty_get, _emberMetalProperty_events, _emberMetalProperties, _emberMetalError, _emberMetalPath_cache, _emberMetalPlatformDefine_property, _emberMetalUtils) {
   exports.set = set;
   exports.trySet = trySet;
-  var INTERCEPT_SET = _emberMetalUtils.symbol("INTERCEPT_SET");
+  var INTERCEPT_SET = (0, _emberMetalUtils.symbol)("INTERCEPT_SET");
   exports.INTERCEPT_SET = INTERCEPT_SET;
-  var UNHANDLED_SET = _emberMetalUtils.symbol("UNHANDLED_SET");
+  var UNHANDLED_SET = (0, _emberMetalUtils.symbol)("UNHANDLED_SET");
 
   exports.UNHANDLED_SET = UNHANDLED_SET;
   /**
@@ -8126,14 +8104,12 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
 
   function set(obj, keyName, value, tolerant) {
     if (typeof obj === "string") {
-      _emberMetalCore["default"].assert("Path '" + obj + "' must be global if no obj is given.", _emberMetalPath_cache.isGlobalPath(obj));
-      _emberMetalCore["default"].deprecate("Calling Ember.set with only a property key and a value has been deprecated, please also specify a target object.");
+      _emberMetalCore["default"].assert("Path '" + obj + "' must be global if no obj is given.", (0, _emberMetalPath_cache.isGlobalPath)(obj));
       value = keyName;
       keyName = obj;
       obj = _emberMetalCore["default"].lookup;
     }
 
-    _emberMetalCore["default"].deprecate("Set must be called with tree or four arguments; an object, a property key, a value and tolerant true/false", arguments.length === 3 || arguments.length === 4);
     _emberMetalCore["default"].assert("Cannot call set with '" + keyName + "' key.", !!keyName);
 
     if (obj === _emberMetalCore["default"].lookup) {
@@ -8158,8 +8134,7 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
     }
 
     var isUnknown, currentValue;
-    if ((!obj || desc === undefined) && _emberMetalPath_cache.isPath(keyName)) {
-      _emberMetalCore["default"].deprecate("Calling Ember.set without a target object has been deprecated, please specify a target object.", !!obj);
+    if ((!obj || desc === undefined) && (0, _emberMetalPath_cache.isPath)(keyName)) {
       return setPath(obj, keyName, value, tolerant);
     }
 
@@ -8183,27 +8158,33 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
         obj.setUnknownProperty(keyName, value);
       } else if (meta && meta.watching[keyName] > 0) {
         if (meta.proto !== obj) {
-          
+          if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
             if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
               currentValue = meta.values[keyName];
             } else {
               currentValue = obj[keyName];
             }
-                  }
+          } else {
+            currentValue = obj[keyName];
+          }
+        }
         // only trigger a change if the value has changed
         if (value !== currentValue) {
-          _emberMetalProperty_events.propertyWillChange(obj, keyName);
-          
+          (0, _emberMetalProperty_events.propertyWillChange)(obj, keyName);
+          if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
             if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
               if (currentValue === undefined && !(keyName in obj) || !Object.prototype.propertyIsEnumerable.call(obj, keyName)) {
-                _emberMetalProperties.defineProperty(obj, keyName, null, value); // setup mandatory setter
+                (0, _emberMetalProperties.defineProperty)(obj, keyName, null, value); // setup mandatory setter
               } else {
                 meta.values[keyName] = value;
               }
             } else {
               obj[keyName] = value;
             }
-                    _emberMetalProperty_events.propertyDidChange(obj, keyName);
+          } else {
+            obj[keyName] = value;
+          }
+          (0, _emberMetalProperty_events.propertyDidChange)(obj, keyName);
         }
       } else {
         obj[keyName] = value;
@@ -8227,9 +8208,7 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
     // unless the path is this, look up the first part to
     // get the root
     if (path !== "this") {
-      root = _emberMetalProperty_get._getPath(root, path);
-    } else {
-      _emberMetalCore["default"].deprecate("Ember.set with 'this' in the path has been deprecated. Please use the same path without 'this'.");
+      root = (0, _emberMetalProperty_get._getPath)(root, path);
     }
 
     if (!keyName || keyName.length === 0) {
@@ -8608,12 +8587,11 @@ enifed('ember-metal/run_loop', ['exports', 'ember-metal/core', 'ember-metal/util
     @public
   */
   run.once = function () {
-    checkAutoRun();
-
     for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
       args[_key3] = arguments[_key3];
     }
 
+    checkAutoRun();
     args.unshift('actions');
     return backburner.scheduleOnce.apply(backburner, args);
   };
@@ -8965,14 +8943,14 @@ enifed("ember-metal/set_properties", ["exports", "ember-metal/property_events", 
     if (!properties || typeof properties !== "object") {
       return obj;
     }
-    _emberMetalProperty_events.changeProperties(function () {
-      var props = _emberMetalKeys["default"](properties);
+    (0, _emberMetalProperty_events.changeProperties)(function () {
+      var props = (0, _emberMetalKeys["default"])(properties);
       var propertyName;
 
       for (var i = 0, l = props.length; i < l; i++) {
         propertyName = props[i];
 
-        _emberMetalProperty_set.set(obj, propertyName, properties[propertyName]);
+        (0, _emberMetalProperty_set.set)(obj, propertyName, properties[propertyName]);
       }
     });
     return obj;
@@ -8982,7 +8960,7 @@ enifed("ember-metal/streams/conditional", ["exports", "ember-metal/streams/strea
   exports["default"] = conditional;
 
   function conditional(test, consequent, alternate) {
-    if (_emberMetalStreamsUtils.isStream(test)) {
+    if ((0, _emberMetalStreamsUtils.isStream)(test)) {
       return new ConditionalStream(test, consequent, alternate);
     } else {
       if (test) {
@@ -9002,33 +8980,33 @@ enifed("ember-metal/streams/conditional", ["exports", "ember-metal/streams/strea
     this.alternate = alternate;
   }
 
-  ConditionalStream.prototype = _emberMetalPlatformCreate["default"](_emberMetalStreamsStream["default"].prototype);
+  ConditionalStream.prototype = (0, _emberMetalPlatformCreate["default"])(_emberMetalStreamsStream["default"].prototype);
 
   ConditionalStream.prototype.compute = function () {
     var oldTestResult = this.oldTestResult;
-    var newTestResult = !!_emberMetalStreamsUtils.read(this.test);
+    var newTestResult = !!(0, _emberMetalStreamsUtils.read)(this.test);
 
     if (newTestResult !== oldTestResult) {
       switch (oldTestResult) {
         case true:
-          _emberMetalStreamsUtils.unsubscribe(this.consequent, this.notify, this);break;
+          (0, _emberMetalStreamsUtils.unsubscribe)(this.consequent, this.notify, this);break;
         case false:
-          _emberMetalStreamsUtils.unsubscribe(this.alternate, this.notify, this);break;
+          (0, _emberMetalStreamsUtils.unsubscribe)(this.alternate, this.notify, this);break;
         case undefined:
-          _emberMetalStreamsUtils.subscribe(this.test, this.notify, this);
+          (0, _emberMetalStreamsUtils.subscribe)(this.test, this.notify, this);
       }
 
       switch (newTestResult) {
         case true:
-          _emberMetalStreamsUtils.subscribe(this.consequent, this.notify, this);break;
+          (0, _emberMetalStreamsUtils.subscribe)(this.consequent, this.notify, this);break;
         case false:
-          _emberMetalStreamsUtils.subscribe(this.alternate, this.notify, this);
+          (0, _emberMetalStreamsUtils.subscribe)(this.alternate, this.notify, this);
       }
 
       this.oldTestResult = newTestResult;
     }
 
-    return newTestResult ? _emberMetalStreamsUtils.read(this.consequent) : _emberMetalStreamsUtils.read(this.alternate);
+    return newTestResult ? (0, _emberMetalStreamsUtils.read)(this.consequent) : (0, _emberMetalStreamsUtils.read)(this.alternate);
   };
 });
 enifed("ember-metal/streams/dependency", ["exports", "ember-metal/core", "ember-metal/merge", "ember-metal/streams/utils"], function (exports, _emberMetalCore, _emberMetalMerge, _emberMetalStreamsUtils) {
@@ -9044,7 +9022,7 @@ enifed("ember-metal/streams/dependency", ["exports", "ember-metal/core", "ember-
     @constructor
   */
   function Dependency(depender, dependee) {
-    _emberMetalCore["default"].assert("Dependency error: Depender must be a stream", _emberMetalStreamsUtils.isStream(depender));
+    _emberMetalCore["default"].assert("Dependency error: Depender must be a stream", (0, _emberMetalStreamsUtils.isStream)(depender));
 
     this.next = null;
     this.prev = null;
@@ -9053,11 +9031,11 @@ enifed("ember-metal/streams/dependency", ["exports", "ember-metal/core", "ember-
     this.unsubscription = null;
   }
 
-  _emberMetalMerge["default"](Dependency.prototype, {
+  (0, _emberMetalMerge["default"])(Dependency.prototype, {
     subscribe: function () {
       _emberMetalCore["default"].assert("Dependency error: Dependency tried to subscribe while already subscribed", !this.unsubscription);
 
-      this.unsubscription = _emberMetalStreamsUtils.subscribe(this.dependee, this.depender.notify, this.depender);
+      this.unsubscription = (0, _emberMetalStreamsUtils.subscribe)(this.dependee, this.depender.notify, this.depender);
     },
 
     unsubscribe: function () {
@@ -9079,11 +9057,11 @@ enifed("ember-metal/streams/dependency", ["exports", "ember-metal/core", "ember-
     },
 
     getValue: function () {
-      return _emberMetalStreamsUtils.read(this.dependee);
+      return (0, _emberMetalStreamsUtils.read)(this.dependee);
     },
 
     setValue: function (value) {
-      return _emberMetalStreamsUtils.setValue(this.dependee, value);
+      return (0, _emberMetalStreamsUtils.setValue)(this.dependee, value);
     }
 
     // destroy() {
@@ -9111,7 +9089,7 @@ enifed("ember-metal/streams/dependency", ["exports", "ember-metal/core", "ember-
 enifed('ember-metal/streams/key-stream', ['exports', 'ember-metal/core', 'ember-metal/merge', 'ember-metal/platform/create', 'ember-metal/property_get', 'ember-metal/property_set', 'ember-metal/observer', 'ember-metal/streams/stream', 'ember-metal/streams/utils'], function (exports, _emberMetalCore, _emberMetalMerge, _emberMetalPlatformCreate, _emberMetalProperty_get, _emberMetalProperty_set, _emberMetalObserver, _emberMetalStreamsStream, _emberMetalStreamsUtils) {
 
   function KeyStream(source, key) {
-    _emberMetalCore["default"].assert('KeyStream error: source must be a stream', _emberMetalStreamsUtils.isStream(source)); // TODO: This isn't necessary.
+    _emberMetalCore["default"].assert('KeyStream error: source must be a stream', (0, _emberMetalStreamsUtils.isStream)(source)); // TODO: This isn't necessary.
     _emberMetalCore["default"].assert('KeyStream error: key must be a non-empty string', typeof key === 'string' && key.length > 0);
     _emberMetalCore["default"].assert('KeyStream error: key must not have a \'.\'', key.indexOf('.') === -1);
 
@@ -9129,20 +9107,20 @@ enifed('ember-metal/streams/key-stream', ['exports', 'ember-metal/core', 'ember-
     return source.label ? source.label + '.' + key : key;
   }
 
-  KeyStream.prototype = _emberMetalPlatformCreate["default"](_emberMetalStreamsStream["default"].prototype);
+  KeyStream.prototype = (0, _emberMetalPlatformCreate["default"])(_emberMetalStreamsStream["default"].prototype);
 
-  _emberMetalMerge["default"](KeyStream.prototype, {
+  (0, _emberMetalMerge["default"])(KeyStream.prototype, {
     compute: function () {
       var object = this.sourceDep.getValue();
       if (object) {
-        return _emberMetalProperty_get.get(object, this.key);
+        return (0, _emberMetalProperty_get.get)(object, this.key);
       }
     },
 
     setValue: function (value) {
       var object = this.sourceDep.getValue();
       if (object) {
-        _emberMetalProperty_set.set(object, this.key, value);
+        (0, _emberMetalProperty_set.set)(object, this.key, value);
       }
     },
 
@@ -9161,7 +9139,7 @@ enifed('ember-metal/streams/key-stream', ['exports', 'ember-metal/core', 'ember-
         this._clearObservedObject();
 
         if (object && typeof object === 'object') {
-          _emberMetalObserver.addObserver(object, this.key, this, this.notify);
+          (0, _emberMetalObserver.addObserver)(object, this.key, this, this.notify);
           this.observedObject = object;
         }
       }
@@ -9171,7 +9149,7 @@ enifed('ember-metal/streams/key-stream', ['exports', 'ember-metal/core', 'ember-
 
     _clearObservedObject: function () {
       if (this.observedObject) {
-        _emberMetalObserver.removeObserver(this.observedObject, this.key, this, this.notify);
+        (0, _emberMetalObserver.removeObserver)(this.observedObject, this.key, this, this.notify);
         this.observedObject = null;
       }
     },
@@ -9191,9 +9169,9 @@ enifed("ember-metal/streams/proxy-stream", ["exports", "ember-metal/merge", "emb
     this.sourceDep = this.addMutableDependency(source);
   }
 
-  ProxyStream.prototype = _emberMetalPlatformCreate["default"](_emberMetalStreamsStream["default"].prototype);
+  ProxyStream.prototype = (0, _emberMetalPlatformCreate["default"])(_emberMetalStreamsStream["default"].prototype);
 
-  _emberMetalMerge["default"](ProxyStream.prototype, {
+  (0, _emberMetalMerge["default"])(ProxyStream.prototype, {
     compute: function () {
       return this.sourceDep.getValue();
     },
@@ -9258,7 +9236,7 @@ enifed("ember-metal/streams/stream", ["exports", "ember-metal/core", "ember-meta
 
     getKey: function (key) {
       if (this.children === undefined) {
-        this.children = _emberMetalPlatformCreate["default"](null);
+        this.children = (0, _emberMetalPlatformCreate["default"])(null);
       }
 
       var keyStream = this.children[key];
@@ -9272,11 +9250,11 @@ enifed("ember-metal/streams/stream", ["exports", "ember-metal/core", "ember-meta
     },
 
     get: function (path) {
-      var firstKey = _emberMetalPath_cache.getFirstKey(path);
-      var tailPath = _emberMetalPath_cache.getTailPath(path);
+      var firstKey = (0, _emberMetalPath_cache.getFirstKey)(path);
+      var tailPath = (0, _emberMetalPath_cache.getTailPath)(path);
 
       if (this.children === undefined) {
-        this.children = _emberMetalPlatformCreate["default"](null);
+        this.children = (0, _emberMetalPlatformCreate["default"])(null);
       }
 
       var keyStream = this.children[firstKey];
@@ -9348,7 +9326,7 @@ enifed("ember-metal/streams/stream", ["exports", "ember-metal/core", "ember-meta
     },
 
     addDependency: function (object) {
-      if (_emberMetalStreamsUtils.isStream(object)) {
+      if ((0, _emberMetalStreamsUtils.isStream)(object)) {
         this.addMutableDependency(object);
       }
     },
@@ -9391,7 +9369,7 @@ enifed("ember-metal/streams/stream", ["exports", "ember-metal/core", "ember-meta
         ProxyMixin = ProxyMixin || _emberMetalCore["default"].__loader.require("ember-runtime/mixins/-proxy")["default"];
 
         if (ProxyMixin.detect(value)) {
-          _emberMetalObserver.addObserver(value, "content", this, this.notify);
+          (0, _emberMetalObserver.addObserver)(value, "content", this, this.notify);
           this.observedProxy = value;
         }
       }
@@ -9399,7 +9377,7 @@ enifed("ember-metal/streams/stream", ["exports", "ember-metal/core", "ember-meta
 
     _clearObservedProxy: function () {
       if (this.observedProxy) {
-        _emberMetalObserver.removeObserver(this.observedProxy, "content", this, this.notify);
+        (0, _emberMetalObserver.removeObserver)(this.observedProxy, "content", this, this.notify);
         this.observedProxy = null;
       }
     },
@@ -9512,7 +9490,7 @@ enifed("ember-metal/streams/stream", ["exports", "ember-metal/core", "ember-meta
   };
 
   Stream.wrap = function (value, Kind, param) {
-    if (_emberMetalStreamsUtils.isStream(value)) {
+    if ((0, _emberMetalStreamsUtils.isStream)(value)) {
       return value;
     } else {
       return new Kind(value, param);
@@ -9548,7 +9526,7 @@ enifed("ember-metal/streams/subscriber", ["exports", "ember-metal/merge"], funct
     this.context = context;
   }
 
-  _emberMetalMerge["default"](Subscriber.prototype, {
+  (0, _emberMetalMerge["default"])(Subscriber.prototype, {
     removeFrom: function (stream) {
       var next = this.next;
       var prev = this.prev;
@@ -9809,7 +9787,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     var labels = [];
 
     for (var prop in streams) {
-      labels.push(prop + ': ' + inspect(streams[prop]));
+      labels.push('' + prop + ': ' + inspect(streams[prop]));
     }
 
     return labels.length ? '{ ' + labels.join(', ') + ' }' : '{}';
@@ -9841,7 +9819,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     var stream = new _stream["default"](function () {
       return first.value() || second.value();
     }, function () {
-      return labelFor(first) + ' || ' + labelFor(second);
+      return '' + labelFor(first) + ' || ' + labelFor(second);
     });
 
     stream.addDependency(first);
@@ -9864,7 +9842,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
       var array = readArray(streams);
       return callback ? callback(array) : array;
     }, function () {
-      return label + '(' + labelsFor(streams) + ')';
+      return '' + label + '(' + labelsFor(streams) + ')';
     });
 
     for (var i = 0, l = streams.length; i < l; i++) {
@@ -9881,7 +9859,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
       var hash = readHash(object);
       return callback ? callback(hash) : hash;
     }, function () {
-      return label + '(' + labelsForObject(object) + ')';
+      return '' + label + '(' + labelsForObject(object) + ')';
     });
 
     for (var prop in object) {
@@ -9928,7 +9906,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     Ember.assert('Must call chain with a label', !!label);
     if (isStream(value)) {
       var stream = new _stream["default"](fn, function () {
-        return label + '(' + labelFor(value) + ')';
+        return '' + label + '(' + labelFor(value) + ')';
       });
       stream.addDependency(value);
       return stream;
@@ -10157,7 +10135,7 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
         if (obj.__defineNonEnumerable) {
           obj.__defineNonEnumerable(GUID_KEY_PROPERTY);
         } else {
-          _emberMetalPlatformDefine_property.defineProperty(obj, GUID_KEY, GUID_DESC);
+          (0, _emberMetalPlatformDefine_property.defineProperty)(obj, GUID_KEY, GUID_DESC);
         }
       }
     }
@@ -10239,7 +10217,7 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
           if (obj.__defineNonEnumerable) {
             obj.__defineNonEnumerable(GUID_KEY_PROPERTY);
           } else {
-            _emberMetalPlatformDefine_property.defineProperty(obj, GUID_KEY, GUID_DESC);
+            (0, _emberMetalPlatformDefine_property.defineProperty)(obj, GUID_KEY, GUID_DESC);
           }
         }
         return ret;
@@ -10282,11 +10260,11 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
   // Placeholder for non-writable metas.
   var EMPTY_META = new Meta(null);
 
-  
+  if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
     if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
       EMPTY_META.values = {};
     }
-  
+  }
 
   /**
     Retrieves the meta hash for an object. If `writable` is true ensures the
@@ -10317,37 +10295,37 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
         if (obj.__defineNonEnumerable) {
           obj.__defineNonEnumerable(EMBER_META_PROPERTY);
         } else {
-          _emberMetalPlatformDefine_property.defineProperty(obj, "__ember_meta__", META_DESC);
+          (0, _emberMetalPlatformDefine_property.defineProperty)(obj, "__ember_meta__", META_DESC);
         }
       }
 
       ret = new Meta(obj);
 
-      
+      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
           ret.values = {};
         }
-      
+      }
 
       obj.__ember_meta__ = ret;
     } else if (ret.source !== obj) {
       if (obj.__defineNonEnumerable) {
         obj.__defineNonEnumerable(EMBER_META_PROPERTY);
       } else {
-        _emberMetalPlatformDefine_property.defineProperty(obj, "__ember_meta__", META_DESC);
+        (0, _emberMetalPlatformDefine_property.defineProperty)(obj, "__ember_meta__", META_DESC);
       }
 
-      ret = _emberMetalPlatformCreate["default"](ret);
-      ret.watching = _emberMetalPlatformCreate["default"](ret.watching);
+      ret = (0, _emberMetalPlatformCreate["default"])(ret);
+      ret.watching = (0, _emberMetalPlatformCreate["default"])(ret.watching);
       ret.cache = undefined;
       ret.cacheMeta = undefined;
       ret.source = obj;
 
-      
+      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
-          ret.values = _emberMetalPlatformCreate["default"](ret.values);
+          ret.values = (0, _emberMetalPlatformCreate["default"])(ret.values);
         }
-      
+      }
 
       obj["__ember_meta__"] = ret;
     }
@@ -10417,7 +10395,7 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
         if (!writable) {
           return undefined;
         }
-        value = _meta[keyName] = _emberMetalPlatformCreate["default"](value);
+        value = _meta[keyName] = (0, _emberMetalPlatformCreate["default"])(value);
         value.__ember_source__ = obj;
       }
 
@@ -10879,11 +10857,11 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
 
   function watchKey(obj, keyName, meta) {
     // can't watch length on Array - it is special...
-    if (keyName === "length" && _emberMetalUtils.isArray(obj)) {
+    if (keyName === "length" && (0, _emberMetalUtils.isArray)(obj)) {
       return;
     }
 
-    var m = meta || _emberMetalUtils.meta(obj);
+    var m = meta || (0, _emberMetalUtils.meta)(obj);
     var watching = m.watching;
 
     // activate watching first time
@@ -10900,17 +10878,17 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
         obj.willWatchProperty(keyName);
       }
 
-      
+      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
           handleMandatorySetter(m, obj, keyName);
         }
-      
+      }
     } else {
       watching[keyName] = (watching[keyName] || 0) + 1;
     }
   }
 
-  
+  if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
     var handleMandatorySetter = function handleMandatorySetter(m, obj, keyName) {
       var descriptor = Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(obj, keyName);
       var configurable = descriptor ? descriptor.configurable : true;
@@ -10926,22 +10904,22 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
       // this x in Y deopts, so keeping it in this function is better;
       if (configurable && isWritable && hasValue && keyName in obj) {
         m.values[keyName] = obj[keyName];
-        _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
+        (0, _emberMetalPlatformDefine_property.defineProperty)(obj, keyName, {
           configurable: true,
           enumerable: Object.prototype.propertyIsEnumerable.call(obj, keyName),
-          set: _emberMetalProperties.MANDATORY_SETTER_FUNCTION(keyName),
-          get: _emberMetalProperties.DEFAULT_GETTER_FUNCTION(keyName)
+          set: (0, _emberMetalProperties.MANDATORY_SETTER_FUNCTION)(keyName),
+          get: (0, _emberMetalProperties.DEFAULT_GETTER_FUNCTION)(keyName)
         });
       }
     };
-  
+  }
 
   // This is super annoying, but required until
   // https://github.com/babel/babel/issues/906 is resolved
   ; // jshint ignore:line
 
   function unwatchKey(obj, keyName, meta) {
-    var m = meta || _emberMetalUtils.meta(obj);
+    var m = meta || (0, _emberMetalUtils.meta)(obj);
     var watching = m.watching;
 
     if (watching[keyName] === 1) {
@@ -10957,14 +10935,14 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
         obj.didUnwatchProperty(keyName);
       }
 
-      
+      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
         if (!desc && _emberMetalPlatformDefine_property.hasPropertyAccessors && keyName in obj) {
-          _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
+          (0, _emberMetalPlatformDefine_property.defineProperty)(obj, keyName, {
             configurable: true,
             enumerable: Object.prototype.propertyIsEnumerable.call(obj, keyName),
             set: function (val) {
               // redefine to set as enumerable
-              _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
+              (0, _emberMetalPlatformDefine_property.defineProperty)(obj, keyName, {
                 configurable: true,
                 writable: true,
                 enumerable: true,
@@ -10972,10 +10950,10 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
               });
               delete m.values[keyName];
             },
-            get: _emberMetalProperties.DEFAULT_GETTER_FUNCTION(keyName)
+            get: (0, _emberMetalProperties.DEFAULT_GETTER_FUNCTION)(keyName)
           });
         }
-      
+      }
     } else if (watching[keyName] > 1) {
       watching[keyName]--;
     }
@@ -10989,7 +10967,7 @@ enifed("ember-metal/watch_path", ["exports", "ember-metal/utils", "ember-metal/c
   // chains inherited from the proto they will be cloned and reconfigured for
   // the current object.
   function chainsFor(obj, meta) {
-    var m = meta || _emberMetalUtils.meta(obj);
+    var m = meta || (0, _emberMetalUtils.meta)(obj);
     var ret = m.chains;
     if (!ret) {
       ret = m.chains = new _emberMetalChains.ChainNode(null, null, obj);
@@ -11001,11 +10979,11 @@ enifed("ember-metal/watch_path", ["exports", "ember-metal/utils", "ember-metal/c
 
   function watchPath(obj, keyPath, meta) {
     // can't watch length on Array - it is special...
-    if (keyPath === "length" && _emberMetalUtils.isArray(obj)) {
+    if (keyPath === "length" && (0, _emberMetalUtils.isArray)(obj)) {
       return;
     }
 
-    var m = meta || _emberMetalUtils.meta(obj);
+    var m = meta || (0, _emberMetalUtils.meta)(obj);
     var watching = m.watching;
 
     if (!watching[keyPath]) {
@@ -11018,7 +10996,7 @@ enifed("ember-metal/watch_path", ["exports", "ember-metal/utils", "ember-metal/c
   }
 
   function unwatchPath(obj, keyPath, meta) {
-    var m = meta || _emberMetalUtils.meta(obj);
+    var m = meta || (0, _emberMetalUtils.meta)(obj);
     var watching = m.watching;
 
     if (watching[keyPath] === 1) {
@@ -11049,14 +11027,14 @@ enifed("ember-metal/watching", ["exports", "ember-metal/utils", "ember-metal/cha
   */
   function watch(obj, _keyPath, m) {
     // can't watch length on Array - it is special...
-    if (_keyPath === "length" && _emberMetalUtils.isArray(obj)) {
+    if (_keyPath === "length" && (0, _emberMetalUtils.isArray)(obj)) {
       return;
     }
 
-    if (!_emberMetalPath_cache.isPath(_keyPath)) {
-      _emberMetalWatch_key.watchKey(obj, _keyPath, m);
+    if (!(0, _emberMetalPath_cache.isPath)(_keyPath)) {
+      (0, _emberMetalWatch_key.watchKey)(obj, _keyPath, m);
     } else {
-      _emberMetalWatch_path.watchPath(obj, _keyPath, m);
+      (0, _emberMetalWatch_path.watchPath)(obj, _keyPath, m);
     }
   }
 
@@ -11071,14 +11049,14 @@ enifed("ember-metal/watching", ["exports", "ember-metal/utils", "ember-metal/cha
 
   function unwatch(obj, _keyPath, m) {
     // can't watch length on Array - it is special...
-    if (_keyPath === "length" && _emberMetalUtils.isArray(obj)) {
+    if (_keyPath === "length" && (0, _emberMetalUtils.isArray)(obj)) {
       return;
     }
 
-    if (!_emberMetalPath_cache.isPath(_keyPath)) {
-      _emberMetalWatch_key.unwatchKey(obj, _keyPath, m);
+    if (!(0, _emberMetalPath_cache.isPath)(_keyPath)) {
+      (0, _emberMetalWatch_key.unwatchKey)(obj, _keyPath, m);
     } else {
-      _emberMetalWatch_path.unwatchPath(obj, _keyPath, m);
+      (0, _emberMetalWatch_path.unwatchPath)(obj, _keyPath, m);
     }
   }
 
@@ -11121,7 +11099,7 @@ enifed("ember-metal/watching", ["exports", "ember-metal/utils", "ember-metal/cha
           if (node._watching) {
             nodeObject = node._object;
             if (nodeObject) {
-              _emberMetalChains.removeChainWatcher(nodeObject, node._key, node);
+              (0, _emberMetalChains.removeChainWatcher)(nodeObject, node._key, node);
             }
           }
         }
@@ -11134,20 +11112,20 @@ enifed("ember-metal/watching", ["exports", "ember-metal/utils", "ember-metal/cha
 */
 enifed("ember-template-compiler", ["exports", "ember-metal/core", "ember-template-compiler/system/precompile", "ember-template-compiler/system/compile", "ember-template-compiler/system/template", "ember-template-compiler/plugins", "ember-template-compiler/plugins/transform-each-in-to-block-params", "ember-template-compiler/plugins/transform-with-as-to-hash", "ember-template-compiler/plugins/transform-bind-attr-to-attributes", "ember-template-compiler/plugins/transform-each-into-collection", "ember-template-compiler/plugins/transform-single-arg-each", "ember-template-compiler/plugins/transform-old-binding-syntax", "ember-template-compiler/plugins/transform-old-class-binding-syntax", "ember-template-compiler/plugins/transform-item-class", "ember-template-compiler/plugins/transform-component-attrs-into-mut", "ember-template-compiler/plugins/transform-component-curly-to-readonly", "ember-template-compiler/plugins/transform-angle-bracket-components", "ember-template-compiler/plugins/transform-input-on-to-onEvent", "ember-template-compiler/plugins/deprecate-view-and-controller-paths", "ember-template-compiler/plugins/deprecate-view-helper", "ember-template-compiler/compat"], function (exports, _emberMetalCore, _emberTemplateCompilerSystemPrecompile, _emberTemplateCompilerSystemCompile, _emberTemplateCompilerSystemTemplate, _emberTemplateCompilerPlugins, _emberTemplateCompilerPluginsTransformEachInToBlockParams, _emberTemplateCompilerPluginsTransformWithAsToHash, _emberTemplateCompilerPluginsTransformBindAttrToAttributes, _emberTemplateCompilerPluginsTransformEachIntoCollection, _emberTemplateCompilerPluginsTransformSingleArgEach, _emberTemplateCompilerPluginsTransformOldBindingSyntax, _emberTemplateCompilerPluginsTransformOldClassBindingSyntax, _emberTemplateCompilerPluginsTransformItemClass, _emberTemplateCompilerPluginsTransformComponentAttrsIntoMut, _emberTemplateCompilerPluginsTransformComponentCurlyToReadonly, _emberTemplateCompilerPluginsTransformAngleBracketComponents, _emberTemplateCompilerPluginsTransformInputOnToOnEvent, _emberTemplateCompilerPluginsDeprecateViewAndControllerPaths, _emberTemplateCompilerPluginsDeprecateViewHelper, _emberTemplateCompilerCompat) {
 
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformWithAsToHash["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformEachInToBlockParams["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformBindAttrToAttributes["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformSingleArgEach["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformEachIntoCollection["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformOldBindingSyntax["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformOldClassBindingSyntax["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformItemClass["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformComponentAttrsIntoMut["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformComponentCurlyToReadonly["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformAngleBracketComponents["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsTransformInputOnToOnEvent["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsDeprecateViewAndControllerPaths["default"]);
-  _emberTemplateCompilerPlugins.registerPlugin("ast", _emberTemplateCompilerPluginsDeprecateViewHelper["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformWithAsToHash["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformEachInToBlockParams["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformBindAttrToAttributes["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformSingleArgEach["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformEachIntoCollection["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformOldBindingSyntax["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformOldClassBindingSyntax["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformItemClass["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformComponentAttrsIntoMut["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformComponentCurlyToReadonly["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformAngleBracketComponents["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsTransformInputOnToOnEvent["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsDeprecateViewAndControllerPaths["default"]);
+  (0, _emberTemplateCompilerPlugins.registerPlugin)("ast", _emberTemplateCompilerPluginsDeprecateViewHelper["default"]);
 
   exports._Ember = _emberMetalCore["default"];
   exports.precompile = _emberTemplateCompilerSystemPrecompile["default"];
@@ -11184,7 +11162,7 @@ enifed('ember-template-compiler/compat/precompile', ['exports', 'ember-template-
     var asObject = arguments[1] === undefined ? true : arguments[1];
     var compileFunc = asObject ? compile : compileSpec;
 
-    return compileFunc(string, _emberTemplateCompilerSystemCompile_options["default"]());
+    return compileFunc(string, (0, _emberTemplateCompilerSystemCompile_options["default"])());
   };
 });
 /**
@@ -11277,7 +11255,7 @@ enifed("ember-template-compiler/plugins/deprecate-view-and-controller-paths", ["
   }
 
   function deprecatePath(moduleName, node, path) {
-    _emberMetalCore["default"].deprecate("Using `{{" + (path && path.type === "PathExpression" && path.parts[0]) + "}}` or any path based on it " + _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.loc) + "has been deprecated.", function deprecatePath_test() {
+    _emberMetalCore["default"].deprecate("Using `{{" + (path && path.type === "PathExpression" && path.parts[0]) + "}}` or any path based on it " + (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.loc) + "has been deprecated.", function deprecatePath_test() {
       var noDeprecate = true;
 
       var viewKeyword = path && path.type === "PathExpression" && path.parts && path.parts[0];
@@ -11336,12 +11314,12 @@ enifed("ember-template-compiler/plugins/deprecate-view-helper", ["exports", "emb
     } else if (paramValue === "select") {
       deprecateSelect(moduleName, node);
     } else {
-      _emberMetalCore["default"].deprecate("Using the `{{view \"string\"}}` helper is deprecated. " + _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.loc), false, { url: "http://emberjs.com/deprecations/v1.x#toc_ember-view", id: "view.helper" });
+      _emberMetalCore["default"].deprecate("Using the `{{view \"string\"}}` helper is deprecated. " + (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.loc), false, { url: "http://emberjs.com/deprecations/v1.x#toc_ember-view", id: "view.helper" });
     }
   }
 
   function deprecateSelect(moduleName, node) {
-    _emberMetalCore["default"].deprecate("Using `{{view \"select\"}}` is deprecated. " + _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.loc), false, { url: "http://emberjs.com/deprecations/v1.x#toc_ember-select", id: "view.helper.select" });
+    _emberMetalCore["default"].deprecate("Using `{{view \"select\"}}` is deprecated. " + (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.loc), false, { url: "http://emberjs.com/deprecations/v1.x#toc_ember-select", id: "view.helper.select" });
   }
 
   function validate(node) {
@@ -11526,7 +11504,7 @@ enifed("ember-template-compiler/plugins/transform-bind-attr-to-attributes", ["ex
   function isBindAttrModifier(modifier, moduleName) {
     var name = modifier.path.original;
 
-    var moduleInfo = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, modifier.path.loc);
+    var moduleInfo = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, modifier.path.loc);
 
     if (name === "bind-attr" || name === "bindAttr") {
       _emberMetalCore["default"].deprecate("The `" + name + "` helper " + moduleInfo + "is deprecated in favor of " + "HTMLBars-style bound attributes.");
@@ -11552,7 +11530,7 @@ enifed("ember-template-compiler/plugins/transform-bind-attr-to-attributes", ["ex
 
   function dasherizeLastKey(path) {
     var parts = path.split(".");
-    return _emberTemplateCompilerSystemString.dasherize(parts[parts.length - 1]);
+    return (0, _emberTemplateCompilerSystemString.dasherize)(parts[parts.length - 1]);
   }
 
   exports["default"] = TransformBindAttrToAttributes;
@@ -11702,7 +11680,7 @@ enifed("ember-template-compiler/plugins/transform-each-in-to-block-params", ["ex
         var moduleInfo = undefined;
 
         if (node.type === "BlockStatement") {
-          moduleInfo = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.program.loc);
+          moduleInfo = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.program.loc);
 
           if (node.program.blockParams.length) {
             throw new Error("You cannot use keyword (`{{#each foo in bar}}`) and block params (`{{#each bar as |foo|}}`) at the same time " + moduleInfo + ".");
@@ -11710,7 +11688,7 @@ enifed("ember-template-compiler/plugins/transform-each-in-to-block-params", ["ex
 
           node.program.blockParams = [keyword];
         } else {
-          moduleInfo = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.loc);
+          moduleInfo = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.loc);
 
           node.hash.pairs.push(b.pair("keyword", b.string(keyword)));
         }
@@ -11815,7 +11793,7 @@ enifed('ember-template-compiler/plugins/transform-each-into-collection', ['expor
         return;
       }
 
-      var moduleInfo = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, legacyHashKey.loc);
+      var moduleInfo = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, legacyHashKey.loc);
 
       _emberMetalCore["default"].deprecate('Using \'' + legacyHashKey.key + '\' with \'{{each}}\' ' + moduleInfo + 'is deprecated.  Please refactor to a component.');
 
@@ -11906,7 +11884,7 @@ enifed("ember-template-compiler/plugins/transform-input-on-to-onEvent", ["export
         var on = hashPairForKey(node.hash, "on");
         var onEvent = hashPairForKey(node.hash, "onEvent");
         var normalizedOn = on || onEvent;
-        var moduleInfo = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.loc);
+        var moduleInfo = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.loc);
 
         if (normalizedOn && normalizedOn.value.type !== "StringLiteral") {
           _emberMetalCore["default"].deprecate("Using a dynamic value for '#{normalizedOn.key}=' with the '{{input}}' helper " + moduleInfo + "is deprecated.");
@@ -11924,14 +11902,14 @@ enifed("ember-template-compiler/plugins/transform-input-on-to-onEvent", ["export
           return; // exit early, if no action was available there is nothing to do
         }
 
-        var specifiedOn = normalizedOn ? normalizedOn.key + "=\"" + normalizedOn.value.value + "\" " : "";
+        var specifiedOn = normalizedOn ? "" + normalizedOn.key + "=\"" + normalizedOn.value.value + "\" " : "";
         if (normalizedOn && normalizedOn.value.value === "keyPress") {
           // using `keyPress` in the root of the component will
           // clobber the keyPress event handler
           normalizedOn.value.value = "key-press";
         }
 
-        var expected = (normalizedOn ? normalizedOn.value.value : "enter") + "=\"" + action.value.original + "\"";
+        var expected = "" + (normalizedOn ? normalizedOn.value.value : "enter") + "=\"" + action.value.original + "\"";
 
         _emberMetalCore["default"].deprecate("Using '{{input " + specifiedOn + "action=\"" + action.value.original + "\"}}' " + moduleInfo + "is deprecated. Please use '{{input " + expected + "}}' instead.");
         if (!normalizedOn) {
@@ -12048,7 +12026,7 @@ enifed('ember-template-compiler/plugins/transform-old-binding-syntax', ['exports
         var key = pair.key;
         var value = pair.value;
 
-        var sourceInformation = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, pair.loc);
+        var sourceInformation = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, pair.loc);
 
         if (key === 'classBinding') {
           return;
@@ -12298,7 +12276,7 @@ enifed("ember-template-compiler/plugins/transform-with-as-to-hash", ["exports", 
           throw new Error("You cannot use keyword (`{{with foo as bar}}`) and block params (`{{with foo as |bar|}}`) at the same time.");
         }
 
-        var moduleInfo = _emberTemplateCompilerSystemCalculateLocationDisplay["default"](moduleName, node.program.loc);
+        var moduleInfo = (0, _emberTemplateCompilerSystemCalculateLocationDisplay["default"])(moduleName, node.program.loc);
 
         Ember.deprecate("Using {{with}} without block syntax " + moduleInfo + "is deprecated. " + "Please use standard block form (`{{#with foo as |bar|}}`) " + "instead.", false, { url: "http://emberjs.com/deprecations/v1.x/#toc_code-as-code-sytnax-for-code-with-code" });
 
@@ -12380,9 +12358,9 @@ enifed("ember-template-compiler/system/compile", ["exports", "ember-template-com
       throw new Error("Cannot call `compile` without the template compiler loaded. Please load `ember-template-compiler.js` prior to calling `compile`.");
     }
 
-    var templateSpec = compile(templateString, _emberTemplateCompilerSystemCompile_options["default"](options));
+    var templateSpec = compile(templateString, (0, _emberTemplateCompilerSystemCompile_options["default"])(options));
 
-    return _emberTemplateCompilerSystemTemplate["default"](templateSpec);
+    return (0, _emberTemplateCompilerSystemTemplate["default"])(templateSpec);
   };
 });
 enifed("ember-template-compiler/system/compile_options", ["exports", "ember-metal/core", "ember-metal/merge", "ember-template-compiler/plugins"], function (exports, _emberMetalCore, _emberMetalMerge, _emberTemplateCompilerPlugins) {
@@ -12394,7 +12372,10 @@ enifed("ember-template-compiler/system/compile_options", ["exports", "ember-meta
 
   exports["default"] = function (_options) {
     var disableComponentGeneration = true;
-    
+    if (_emberMetalCore["default"].FEATURES.isEnabled("ember-htmlbars-component-generation")) {
+      disableComponentGeneration = false;
+    }
+
     var options = undefined;
     // When calling `Ember.Handlebars.compile()` a second argument of `true`
     // had a special meaning (long since lost), this just gaurds against
@@ -12402,7 +12383,7 @@ enifed("ember-template-compiler/system/compile_options", ["exports", "ember-meta
     if (_options === true) {
       options = {};
     } else {
-      options = _emberMetalMerge.assign({}, _options);
+      options = (0, _emberMetalMerge.assign)({}, _options);
     }
 
     options.disableComponentGeneration = disableComponentGeneration;
@@ -12418,7 +12399,7 @@ enifed("ember-template-compiler/system/compile_options", ["exports", "ember-meta
 
     options.buildMeta = function buildMeta(program) {
       return {
-        revision: "Ember@1.13.5",
+        revision: "Ember@1.13.2",
         loc: program.loc,
         moduleName: options.moduleName
       };
@@ -12454,7 +12435,7 @@ enifed('ember-template-compiler/system/precompile', ['exports', 'ember-template-
       throw new Error('Cannot call `compileSpec` without the template compiler loaded. Please load `ember-template-compiler.js` prior to calling `compileSpec`.');
     }
 
-    return compileSpec(templateString, _emberTemplateCompilerSystemCompile_options["default"](options));
+    return compileSpec(templateString, (0, _emberTemplateCompilerSystemCompile_options["default"])(options));
   };
 });
 /**
@@ -12500,7 +12481,7 @@ enifed("ember-template-compiler/system/template", ["exports", "htmlbars-runtime/
 
   exports["default"] = function (templateSpec) {
     if (!templateSpec.render) {
-      templateSpec = _htmlbarsRuntimeHooks.wrap(templateSpec);
+      templateSpec = (0, _htmlbarsRuntimeHooks.wrap)(templateSpec);
     }
 
     templateSpec.isTop = true;
@@ -12536,7 +12517,7 @@ enifed("htmlbars-compiler/compiler", ["exports", "../htmlbars-syntax/parser", ".
    */
 
   function compileSpec(string, options) {
-    var ast = _htmlbarsSyntaxParser.preprocess(string, options);
+    var ast = (0, _htmlbarsSyntaxParser.preprocess)(string, options);
     var compiler = new _templateCompiler["default"](options);
     var program = compiler.compile(ast);
     return program;
@@ -12585,7 +12566,7 @@ enifed("htmlbars-compiler/compiler", ["exports", "../htmlbars-syntax/parser", ".
    */
 
   function compile(string, options) {
-    return _htmlbarsRuntimeHooks.wrap(template(compileSpec(string, options)), _htmlbarsRuntimeRender["default"]);
+    return (0, _htmlbarsRuntimeHooks.wrap)(template(compileSpec(string, options)), _htmlbarsRuntimeRender["default"]);
   }
 });
 /*jshint evil:true*/
@@ -12611,7 +12592,7 @@ enifed("htmlbars-compiler/fragment-javascript-compiler", ["exports", "./utils", 
     this.domNamespace = null;
 
     this.source.push("function buildFragment(dom) {\n");
-    _utils.processOpcodes(this, opcodes);
+    (0, _utils.processOpcodes)(this, opcodes);
     this.source.push(this.indent + "}");
 
     return this.source.join("");
@@ -12628,7 +12609,7 @@ enifed("htmlbars-compiler/fragment-javascript-compiler", ["exports", "./utils", 
       this.pushNamespaceFrame({ namespace: svgNamespace, depth: this.depth });
     }
     this.ensureNamespace();
-    this.source.push(this.indent + "  var " + el + " = dom.createElement(" + _htmlbarsUtilQuoting.string(tagName) + ");\n");
+    this.source.push(this.indent + "  var " + el + " = dom.createElement(" + (0, _htmlbarsUtilQuoting.string)(tagName) + ");\n");
     if (svgHTMLIntegrationPoints[tagName]) {
       this.pushNamespaceFrame({ namespace: null, depth: this.depth });
     }
@@ -12636,12 +12617,12 @@ enifed("htmlbars-compiler/fragment-javascript-compiler", ["exports", "./utils", 
 
   FragmentJavaScriptCompiler.prototype.createText = function (str) {
     var el = "el" + ++this.depth;
-    this.source.push(this.indent + "  var " + el + " = dom.createTextNode(" + _htmlbarsUtilQuoting.string(str) + ");\n");
+    this.source.push(this.indent + "  var " + el + " = dom.createTextNode(" + (0, _htmlbarsUtilQuoting.string)(str) + ");\n");
   };
 
   FragmentJavaScriptCompiler.prototype.createComment = function (str) {
     var el = "el" + ++this.depth;
-    this.source.push(this.indent + "  var " + el + " = dom.createComment(" + _htmlbarsUtilQuoting.string(str) + ");\n");
+    this.source.push(this.indent + "  var " + el + " = dom.createComment(" + (0, _htmlbarsUtilQuoting.string)(str) + ");\n");
   };
 
   FragmentJavaScriptCompiler.prototype.returnNode = function () {
@@ -12652,9 +12633,9 @@ enifed("htmlbars-compiler/fragment-javascript-compiler", ["exports", "./utils", 
   FragmentJavaScriptCompiler.prototype.setAttribute = function (name, value, namespace) {
     var el = "el" + this.depth;
     if (namespace) {
-      this.source.push(this.indent + "  dom.setAttributeNS(" + el + "," + _htmlbarsUtilQuoting.string(namespace) + "," + _htmlbarsUtilQuoting.string(name) + "," + _htmlbarsUtilQuoting.string(value) + ");\n");
+      this.source.push(this.indent + "  dom.setAttributeNS(" + el + "," + (0, _htmlbarsUtilQuoting.string)(namespace) + "," + (0, _htmlbarsUtilQuoting.string)(name) + "," + (0, _htmlbarsUtilQuoting.string)(value) + ");\n");
     } else {
-      this.source.push(this.indent + "  dom.setAttribute(" + el + "," + _htmlbarsUtilQuoting.string(name) + "," + _htmlbarsUtilQuoting.string(value) + ");\n");
+      this.source.push(this.indent + "  dom.setAttribute(" + el + "," + (0, _htmlbarsUtilQuoting.string)(name) + "," + (0, _htmlbarsUtilQuoting.string)(value) + ");\n");
     }
   };
 
@@ -12682,7 +12663,7 @@ enifed("htmlbars-compiler/fragment-javascript-compiler", ["exports", "./utils", 
   FragmentJavaScriptCompiler.prototype.ensureNamespace = function () {
     var correctNamespace = this.getCurrentNamespaceFrame().namespace;
     if (this.domNamespace !== correctNamespace) {
-      this.source.push(this.indent + "  dom.setNamespace(" + (correctNamespace ? _htmlbarsUtilQuoting.string(correctNamespace) : "null") + ");\n");
+      this.source.push(this.indent + "  dom.setNamespace(" + (correctNamespace ? (0, _htmlbarsUtilQuoting.string)(correctNamespace) : "null") + ");\n");
       this.domNamespace = correctNamespace;
     }
   };
@@ -12699,7 +12680,7 @@ enifed("htmlbars-compiler/fragment-opcode-compiler", ["exports", "./template-vis
     var templateVisitor = new _templateVisitor["default"]();
     templateVisitor.visit(ast);
 
-    _utils.processOpcodes(this, templateVisitor.actions);
+    (0, _utils.processOpcodes)(this, templateVisitor.actions);
 
     return this.opcodes;
   };
@@ -12720,7 +12701,7 @@ enifed("htmlbars-compiler/fragment-opcode-compiler", ["exports", "./template-vis
 
   FragmentOpcodeCompiler.prototype.openElement = function (element) {
     this.opcode("createElement", [element.tag]);
-    _htmlbarsUtilArrayUtils.forEach(element.attributes, this.attribute, this);
+    (0, _htmlbarsUtilArrayUtils.forEach)(element.attributes, this.attribute, this);
   };
 
   FragmentOpcodeCompiler.prototype.closeElement = function () {
@@ -12755,7 +12736,7 @@ enifed("htmlbars-compiler/fragment-opcode-compiler", ["exports", "./template-vis
 
   FragmentOpcodeCompiler.prototype.attribute = function (attr) {
     if (attr.value.type === "TextNode") {
-      var namespace = _htmlbarsUtil.getAttrNamespace(attr.name);
+      var namespace = (0, _htmlbarsUtil.getAttrNamespace)(attr.name);
       this.opcode("setAttribute", [attr.name, attr.value.chars, namespace]);
     }
   };
@@ -12800,7 +12781,7 @@ enifed("htmlbars-compiler/hydration-javascript-compiler", ["exports", "./utils",
     this.hasOpenBoundary = false;
     this.hasCloseBoundary = false;
 
-    _utils.processOpcodes(this, opcodes);
+    (0, _utils.processOpcodes)(this, opcodes);
 
     if (this.hasOpenBoundary) {
       this.source.unshift(this.indent + "  dom.insertBoundary(fragment, 0);\n");
@@ -12899,12 +12880,12 @@ enifed("htmlbars-compiler/hydration-javascript-compiler", ["exports", "./utils",
     this.expressionStack.push(value);
   };
 
-  prototype.pushGetHook = function (path, meta) {
-    this.expressionStack.push(["get", path, meta]);
+  prototype.pushGetHook = function (path) {
+    this.expressionStack.push(["get", path]);
   };
 
-  prototype.pushSexprHook = function (meta) {
-    this.expressionStack.push(["subexpr", this.expressionStack.pop(), this.expressionStack.pop(), this.expressionStack.pop(), meta]);
+  prototype.pushSexprHook = function () {
+    this.expressionStack.push(["subexpr", this.expressionStack.pop(), this.expressionStack.pop(), this.expressionStack.pop()]);
   };
 
   prototype.pushConcatHook = function () {
@@ -12915,23 +12896,23 @@ enifed("htmlbars-compiler/hydration-javascript-compiler", ["exports", "./utils",
     this.locals.push(name);
   };
 
-  prototype.printBlockHook = function (templateId, inverseId, meta) {
+  prototype.printBlockHook = function (templateId, inverseId) {
     this.statements.push(["block", this.expressionStack.pop(), // path
     this.expressionStack.pop(), // params
     this.expressionStack.pop(), // hash
-    templateId, inverseId, meta]);
+    templateId, inverseId]);
   };
 
-  prototype.printInlineHook = function (meta) {
+  prototype.printInlineHook = function () {
     var path = this.expressionStack.pop();
     var params = this.expressionStack.pop();
     var hash = this.expressionStack.pop();
 
-    this.statements.push(["inline", path, params, hash, meta]);
+    this.statements.push(["inline", path, params, hash]);
   };
 
-  prototype.printContentHook = function (meta) {
-    this.statements.push(["content", this.expressionStack.pop(), meta]);
+  prototype.printContentHook = function () {
+    this.statements.push(["content", this.expressionStack.pop()]);
   };
 
   prototype.printComponentHook = function (templateId) {
@@ -12946,11 +12927,11 @@ enifed("htmlbars-compiler/hydration-javascript-compiler", ["exports", "./utils",
     ]);
   };
 
-  prototype.printElementHook = function (meta) {
+  prototype.printElementHook = function () {
     this.statements.push(["element", this.expressionStack.pop(), // path
     this.expressionStack.pop(), // params
-    this.expressionStack.pop(), // hash
-    meta]);
+    this.expressionStack.pop() // hash
+    ]);
   };
 
   prototype.createMorph = function (morphNum, parentPath, startIndex, endIndex, escaped) {
@@ -12977,7 +12958,7 @@ enifed("htmlbars-compiler/hydration-javascript-compiler", ["exports", "./utils",
 
   prototype.repairClonedNode = function (blankChildTextNodes, isElementChecked) {
     var parent = this.getParent(),
-        processing = "if (this.cachedFragment) { dom.repairClonedNode(" + parent + "," + _htmlbarsUtilQuoting.array(blankChildTextNodes) + (isElementChecked ? ",true" : "") + "); }";
+        processing = "if (this.cachedFragment) { dom.repairClonedNode(" + parent + "," + (0, _htmlbarsUtilQuoting.array)(blankChildTextNodes) + (isElementChecked ? ",true" : "") + "); }";
     this.fragmentProcessing.push(processing);
   };
 
@@ -13041,7 +13022,7 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
     var templateVisitor = new _templateVisitor["default"]();
     templateVisitor.visit(ast);
 
-    _utils.processOpcodes(this, templateVisitor.actions);
+    (0, _utils.processOpcodes)(this, templateVisitor.actions);
 
     return this.opcodes;
   };
@@ -13111,8 +13092,8 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
     this.paths.push(this.currentDOMChildIndex);
     this.currentDOMChildIndex = -1;
 
-    _htmlbarsUtilArrayUtils.forEach(element.attributes, this.attribute, this);
-    _htmlbarsUtilArrayUtils.forEach(element.modifiers, this.elementModifier, this);
+    (0, _htmlbarsUtilArrayUtils.forEach)(element.attributes, this.attribute, this);
+    (0, _htmlbarsUtilArrayUtils.forEach)(element.modifiers, this.elementModifier, this);
   };
 
   HydrationOpcodeCompiler.prototype.closeElement = function () {
@@ -13126,7 +13107,7 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
 
     var opcode;
 
-    if (_htmlbarsSyntaxUtils.isHelper(mustache)) {
+    if ((0, _htmlbarsSyntaxUtils.isHelper)(mustache)) {
       prepareHash(this, mustache.hash);
       prepareParams(this, mustache.params);
       preparePath(this, mustache.path);
@@ -13141,21 +13122,8 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
     var end = this.currentDOMChildIndex;
     this.morphs.push([morphNum, this.paths.slice(), start, end, mustache.escaped]);
 
-    this.opcode(opcode, meta(mustache));
+    this.opcode(opcode);
   };
-
-  function meta(node) {
-    var loc = node.loc;
-    if (!loc) {
-      return [];
-    }
-
-    var source = loc.source;
-    var start = loc.start;
-    var end = loc.end;
-
-    return ["loc", [source || null, [start.line, start.column], [end.line, end.column]]];
-  }
 
   HydrationOpcodeCompiler.prototype.block = function (block, childIndex, childCount) {
     this.pushMorphPlaceholderNode(childIndex, childCount);
@@ -13172,7 +13140,7 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
     var templateId = this.templateId++;
     var inverseId = block.inverse === null ? null : this.templateId++;
 
-    this.opcode("printBlockHook", templateId, inverseId, meta(block));
+    this.opcode("printBlockHook", templateId, inverseId);
   };
 
   HydrationOpcodeCompiler.prototype.component = function (component, childIndex, childCount) {
@@ -13190,7 +13158,7 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
       if (value.type === "TextNode") {
         this.opcode("pushLiteral", value.chars);
       } else if (value.type === "MustacheStatement") {
-        this.accept(_htmlbarsSyntaxUtils.unwrapMustache(value));
+        this.accept((0, _htmlbarsSyntaxUtils.unwrapMustache)(value));
       } else if (value.type === "ConcatStatement") {
         prepareParams(this, value.parts);
         this.opcode("pushConcatHook", this.morphNum);
@@ -13206,20 +13174,20 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
 
     this.opcode("prepareObject", attrs.length);
     this.opcode("pushLiteral", component.tag);
-    this.opcode("printComponentHook", this.templateId++, blockParams.length, meta(component));
+    this.opcode("printComponentHook", this.templateId++, blockParams.length);
   };
 
   HydrationOpcodeCompiler.prototype.attribute = function (attr) {
     var value = attr.value;
     var escaped = true;
-    var namespace = _htmlbarsUtil.getAttrNamespace(attr.name);
+    var namespace = (0, _htmlbarsUtil.getAttrNamespace)(attr.name);
 
     // TODO: Introduce context specific AST nodes to avoid switching here.
     if (value.type === "TextNode") {
       return;
     } else if (value.type === "MustacheStatement") {
       escaped = value.escaped;
-      this.accept(_htmlbarsSyntaxUtils.unwrapMustache(value));
+      this.accept((0, _htmlbarsSyntaxUtils.unwrapMustache)(value));
     } else if (value.type === "ConcatStatement") {
       prepareParams(this, value.parts);
       this.opcode("pushConcatHook", this.morphNum);
@@ -13248,7 +13216,7 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
     }
 
     publishElementMorph(this);
-    this.opcode("printElementHook", meta(modifier));
+    this.opcode("printElementHook");
   };
 
   HydrationOpcodeCompiler.prototype.pushMorphPlaceholderNode = function (childIndex, childCount) {
@@ -13267,18 +13235,18 @@ enifed("htmlbars-compiler/hydration-opcode-compiler", ["exports", "./template-vi
     prepareHash(this, mustache.hash);
     prepareParams(this, mustache.params);
     preparePath(this, mustache.path);
-    this.opcode("pushSexprHook", meta(mustache));
+    this.opcode("pushSexprHook");
   };
 
   HydrationOpcodeCompiler.prototype.SubExpression = function (sexpr) {
     prepareHash(this, sexpr.hash);
     prepareParams(this, sexpr.params);
     preparePath(this, sexpr.path);
-    this.opcode("pushSexprHook", meta(sexpr));
+    this.opcode("pushSexprHook");
   };
 
   HydrationOpcodeCompiler.prototype.PathExpression = function (path) {
-    this.opcode("pushGetHook", path.original, meta(path));
+    this.opcode("pushGetHook", path.original);
   };
 
   HydrationOpcodeCompiler.prototype.StringLiteral = function (node) {
@@ -13405,7 +13373,7 @@ enifed('htmlbars-compiler/template-compiler', ['exports', './fragment-opcode-com
 
     normalizedActions.push(actions[actions.length - 1]);
 
-    _utils.processOpcodes(this, normalizedActions);
+    (0, _utils.processOpcodes)(this, normalizedActions);
 
     return this.templates.pop();
   };
@@ -13451,7 +13419,7 @@ enifed('htmlbars-compiler/template-compiler', ['exports', './fragment-opcode-com
     this.fragmentOpcodeCompiler.endProgram(program);
     this.hydrationOpcodeCompiler.endProgram(program);
 
-    var indent = _htmlbarsUtilQuoting.repeat('  ', programDepth);
+    var indent = (0, _htmlbarsUtilQuoting.repeat)('  ', programDepth);
     var options = {
       indent: indent + '    '
     };
@@ -13469,13 +13437,13 @@ enifed('htmlbars-compiler/template-compiler', ['exports', './fragment-opcode-com
       templateSignature += ', blockArguments';
     }
 
-    var statements = _htmlbarsUtilArrayUtils.map(hydrationPrograms.statements, function (s) {
+    var statements = (0, _htmlbarsUtilArrayUtils.map)(hydrationPrograms.statements, function (s) {
       return indent + '      ' + JSON.stringify(s);
     }).join(',\n');
 
     var locals = JSON.stringify(hydrationPrograms.locals);
 
-    var templates = _htmlbarsUtilArrayUtils.map(this.childTemplates, function (_, index) {
+    var templates = (0, _htmlbarsUtilArrayUtils.map)(this.childTemplates, function (_, index) {
       return 'child' + index;
     }).join(', ');
 
@@ -13903,12 +13871,12 @@ enifed("htmlbars-runtime/expression-visitor", ["exports", "../htmlbars-util/obje
         hash = hash && this.acceptHash(hash, env, scope);
       }
 
-      _htmlbarsUtilMorphUtils.linkParams(env, scope, morph, path, params, hash);
+      (0, _htmlbarsUtilMorphUtils.linkParams)(env, scope, morph, path, params, hash);
       return [params, hash];
     }
   };
 
-  var AlwaysDirtyVisitor = _htmlbarsUtilObjectUtils.merge(Object.create(base), {
+  var AlwaysDirtyVisitor = (0, _htmlbarsUtilObjectUtils.merge)((0, _htmlbarsUtilObjectUtils.createObject)(base), {
     // [ 'block', path, params, hash, templateId, inverseId ]
     block: function (node, morph, env, scope, template, visitor) {
       var path = node[1],
@@ -13942,7 +13910,7 @@ enifed("htmlbars-runtime/expression-visitor", ["exports", "../htmlbars-util/obje
       if (isHelper(env, scope, path)) {
         env.hooks.inline(morph, env, scope, path, [], {}, visitor);
         if (morph.linkedResult) {
-          _htmlbarsUtilMorphUtils.linkParams(env, scope, morph, "@content-helper", [morph.linkedResult], null);
+          (0, _htmlbarsUtilMorphUtils.linkParams)(env, scope, morph, "@content-helper", [morph.linkedResult], null);
         }
         return;
       }
@@ -13954,7 +13922,7 @@ enifed("htmlbars-runtime/expression-visitor", ["exports", "../htmlbars-util/obje
         params = [env.hooks.get(env, scope, path)];
       }
 
-      _htmlbarsUtilMorphUtils.linkParams(env, scope, morph, "@range", params, null);
+      (0, _htmlbarsUtilMorphUtils.linkParams)(env, scope, morph, "@range", params, null);
       env.hooks.range(morph, env, scope, path, params[0], visitor);
     },
 
@@ -14003,7 +13971,7 @@ enifed("htmlbars-runtime/expression-visitor", ["exports", "../htmlbars-util/obje
   });
 
   exports.AlwaysDirtyVisitor = AlwaysDirtyVisitor;
-  exports["default"] = _htmlbarsUtilObjectUtils.merge(Object.create(base), {
+  exports["default"] = (0, _htmlbarsUtilObjectUtils.merge)((0, _htmlbarsUtilObjectUtils.createObject)(base), {
     // [ 'block', path, params, hash, templateId, inverseId ]
     block: function (node, morph, env, scope, template, visitor) {
       dirtyCheck(env, morph, visitor, function (visitor) {
@@ -14067,7 +14035,7 @@ enifed("htmlbars-runtime/expression-visitor", ["exports", "../htmlbars-util/obje
       if (morph.buildChildEnv) {
         env = morph.buildChildEnv(morph.state, env);
       }
-      _htmlbarsUtilMorphUtils.validateChildMorphs(env, morph, visitor);
+      (0, _htmlbarsUtilMorphUtils.validateChildMorphs)(env, morph, visitor);
     }
   }
 
@@ -14203,7 +14171,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
         options.self = self;
         options.blockArguments = blockArguments;
 
-        return _render["default"](template, env, scope, options);
+        return (0, _render["default"])(template, env, scope, options);
       }
     };
   }
@@ -14250,7 +14218,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
       // are yielding a single template. In that case, we mark the morph list for
       // cleanup so it is removed from the DOM.
       if (morph.morphList) {
-        _htmlbarsUtilTemplateUtils.clearMorphList(morph.morphList, morph, env);
+        (0, _htmlbarsUtilTemplateUtils.clearMorphList)(morph.morphList, morph, env);
         renderState.morphListToClear = null;
       }
 
@@ -14271,7 +14239,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
       morph.lastYielded = { self: self, template: template, shadowTemplate: null };
 
       // Render the template that was selected by the helper
-      _render["default"](template, env, scope, { renderNode: morph, self: self, blockArguments: blockArguments });
+      (0, _render["default"])(template, env, scope, { renderNode: morph, self: self, blockArguments: blockArguments });
     };
   }
 
@@ -14355,7 +14323,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
         handledMorphs[foundMorph.key] = foundMorph;
         yieldTemplate(template, env, parentScope, foundMorph, renderState, visitor)(blockArguments, self);
       } else {
-        var childMorph = _render.createChildMorph(env.dom, morph);
+        var childMorph = (0, _render.createChildMorph)(env.dom, morph);
         childMorph.key = key;
         morphMap[key] = handledMorphs[key] = childMorph;
         morphList.insertBeforeMorph(childMorph, currentMorph);
@@ -14395,7 +14363,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
       morph.lastYielded = { self: self, template: template, shadowTemplate: shadowTemplate };
 
       // Render the shadow template with the block available
-      _render["default"](shadowTemplate.raw, env, shadowScope, { renderNode: morph, self: self, blockArguments: blockArguments });
+      (0, _render["default"])(shadowTemplate.raw, env, shadowScope, { renderNode: morph, self: self, blockArguments: blockArguments });
     };
 
     function blockToYield(env, blockArguments, self, renderNode, shadowParent, visitor) {
@@ -14410,7 +14378,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
           scope = env.hooks.createChildScope(parentScope);
         }
 
-        _render["default"](template, env, scope, { renderNode: renderNode, self: self, blockArguments: blockArguments });
+        (0, _render["default"])(template, env, scope, { renderNode: renderNode, self: self, blockArguments: blockArguments });
       }
     }
   }
@@ -14543,8 +14511,8 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
   }
 
   function createChildScope(parent) {
-    var scope = Object.create(parent);
-    scope.locals = Object.create(parent.locals);
+    var scope = (0, _htmlbarsUtilObjectUtils.createObject)(parent);
+    scope.locals = (0, _htmlbarsUtilObjectUtils.createObject)(parent.locals);
     return scope;
   }
 
@@ -14612,7 +14580,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
   */
 
   function bindBlock(env, scope, block) {
-    var name = arguments.length <= 3 || arguments[3] === undefined ? "default" : arguments[3];
+    var name = arguments[3] === undefined ? "default" : arguments[3];
 
     scope.blocks[name] = block;
   }
@@ -14683,7 +14651,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
 
   function hostBlock(morph, env, scope, template, inverse, shadowOptions, visitor, callback) {
     var options = optionsFor(template, inverse, env, scope, morph, visitor);
-    _htmlbarsUtilTemplateUtils.renderAndCleanup(morph, env, options, shadowOptions, callback);
+    (0, _htmlbarsUtilTemplateUtils.renderAndCleanup)(morph, env, options, shadowOptions, callback);
   }
 
   function handleRedirect(morph, env, scope, path, params, hash, template, inverse, visitor) {
@@ -14729,7 +14697,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
 
     var lastState, newState;
     if (keyword.setupState) {
-      lastState = _htmlbarsUtilObjectUtils.shallowCopy(morph.state);
+      lastState = (0, _htmlbarsUtilObjectUtils.shallowCopy)(morph.state);
       newState = morph.state = keyword.setupState(lastState, env, scope, params, hash);
     }
 
@@ -14751,7 +14719,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
 
       if (isEmpty) {
         if (!firstTime) {
-          _htmlbarsUtilTemplateUtils.clearMorph(morph, env, false);
+          (0, _htmlbarsUtilTemplateUtils.clearMorph)(morph, env, false);
         }
         return true;
       }
@@ -14777,10 +14745,10 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
         var newEnv = keyword.rerender(morph, env, scope, params, hash, template, inverse, visitor);
         env = newEnv || env;
       }
-      _htmlbarsUtilMorphUtils.validateChildMorphs(env, morph, visitor);
+      (0, _htmlbarsUtilMorphUtils.validateChildMorphs)(env, morph, visitor);
       return true;
     } else {
-      _htmlbarsUtilTemplateUtils.clearMorph(morph, env, false);
+      (0, _htmlbarsUtilTemplateUtils.clearMorph)(morph, env, false);
     }
 
     // If the node is unstable, re-render from scratch
@@ -14792,7 +14760,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
   }
 
   function stableState(oldState, newState) {
-    if (_htmlbarsUtilObjectUtils.keyLength(oldState) !== _htmlbarsUtilObjectUtils.keyLength(newState)) {
+    if ((0, _htmlbarsUtilObjectUtils.keyLength)(oldState) !== (0, _htmlbarsUtilObjectUtils.keyLength)(newState)) {
       return false;
     }
 
@@ -14866,7 +14834,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
 
       if (result && result.link) {
         morph.linkedResult = result.value;
-        _htmlbarsUtilMorphUtils.linkParams(env, scope, morph, "@content-helper", [morph.linkedResult], null);
+        (0, _htmlbarsUtilMorphUtils.linkParams)(env, scope, morph, "@content-helper", [morph.linkedResult], null);
       }
 
       if (result && "value" in result) {
@@ -15175,7 +15143,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
     for (var name in attrs) {
       element.setAttribute(name, env.hooks.getValue(attrs[name]));
     }
-    var fragment = _render["default"](template, env, scope, {}).fragment;
+    var fragment = (0, _render["default"])(template, env, scope, {}).fragment;
     element.appendChild(fragment);
     morph.setNode(element);
   }
@@ -15243,7 +15211,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
 /* morph, env, scope, params, hash */ /* env, scope, path */ /* env, scope */
 // this function is used to handle host-specified extensions to scope
 // other than `self`, `locals` and `block`.
-enifed("htmlbars-runtime/morph", ["exports", "../morph-range"], function (exports, _morphRange) {
+enifed("htmlbars-runtime/morph", ["exports", "../morph-range", "../htmlbars-util/object-utils"], function (exports, _morphRange, _htmlbarsUtilObjectUtils) {
 
   var guid = 1;
 
@@ -15286,7 +15254,7 @@ enifed("htmlbars-runtime/morph", ["exports", "../morph-range"], function (export
     return morph;
   };
 
-  var prototype = HTMLBarsMorph.prototype = Object.create(_morphRange["default"].prototype);
+  var prototype = HTMLBarsMorph.prototype = (0, _htmlbarsUtilObjectUtils.createObject)(_morphRange["default"].prototype);
   prototype.constructor = HTMLBarsMorph;
   prototype.super$constructor = _morphRange["default"];
 
@@ -15368,8 +15336,8 @@ enifed("htmlbars-runtime/render", ["exports", "../htmlbars-util/array-utils", ".
     }
 
     if (rootNode.childNodes) {
-      _htmlbarsUtilMorphUtils.visitChildren(rootNode.childNodes, function (node) {
-        _htmlbarsUtilTemplateUtils.clearMorph(node, env, true);
+      (0, _htmlbarsUtilMorphUtils.visitChildren)(rootNode.childNodes, function (node) {
+        (0, _htmlbarsUtilTemplateUtils.clearMorph)(node, env, true);
       });
     }
 
@@ -15489,7 +15457,7 @@ enifed("htmlbars-runtime/render", ["exports", "../htmlbars-util/array-utils", ".
   }
 
   RenderResult.prototype.initializeNodes = function (ownerNode) {
-    _htmlbarsUtilArrayUtils.forEach(this.root.childNodes, function (node) {
+    (0, _htmlbarsUtilArrayUtils.forEach)(this.root.childNodes, function (node) {
       initializeNode(node, ownerNode);
     });
   };
@@ -15505,7 +15473,7 @@ enifed("htmlbars-runtime/render", ["exports", "../htmlbars-util/array-utils", ".
   };
 
   RenderResult.prototype.dirty = function () {
-    _htmlbarsUtilMorphUtils.visitChildren([this.root], function (node) {
+    (0, _htmlbarsUtilMorphUtils.visitChildren)([this.root], function (node) {
       node.isDirty = true;
     });
   };
@@ -15539,7 +15507,7 @@ enifed("htmlbars-runtime/render", ["exports", "../htmlbars-util/array-utils", ".
 
   RenderResult.prototype.destroy = function () {
     var rootNode = this.root;
-    _htmlbarsUtilTemplateUtils.clearMorph(rootNode, this.env, true);
+    (0, _htmlbarsUtilTemplateUtils.clearMorph)(rootNode, this.env, true);
   };
 
   RenderResult.prototype.populateNodes = function (visitor) {
@@ -15732,14 +15700,13 @@ enifed("htmlbars-syntax/builders", ["exports"], function (exports) {
 
   // Nodes
 
-  function buildElement(tag, attributes, modifiers, children, loc) {
+  function buildElement(tag, attributes, modifiers, children) {
     return {
       type: "ElementNode",
-      tag: tag || "",
+      tag: tag,
       attributes: attributes || [],
       modifiers: modifiers || [],
-      children: children || [],
-      loc: buildLoc(loc)
+      children: children || []
     };
   }
 
@@ -15761,11 +15728,10 @@ enifed("htmlbars-syntax/builders", ["exports"], function (exports) {
     };
   }
 
-  function buildText(chars, loc) {
+  function buildText(chars) {
     return {
       type: "TextNode",
-      chars: chars || "",
-      loc: buildLoc(loc)
+      chars: chars
     };
   }
 
@@ -15854,36 +15820,22 @@ enifed("htmlbars-syntax/builders", ["exports"], function (exports) {
     };
   }
 
-  function buildSource(source) {
-    return source || null;
-  }
-
   function buildPosition(line, column) {
     return {
-      line: typeof line === "number" ? line : null,
-      column: typeof column === "number" ? column : null
+      line: line,
+      column: column
     };
   }
 
-  function buildLoc(startLine, startColumn, endLine, endColumn, source) {
-    if (arguments.length === 1) {
-      var loc = startLine;
-
-      if (typeof loc === "object") {
-        return {
-          source: buildSource(loc.source),
-          start: buildPosition(loc.start.line, loc.start.column),
-          end: buildPosition(loc.end.line, loc.end.column)
-        };
-      } else {
-        return null;
-      }
-    } else {
+  function buildLoc(loc) {
+    if (loc) {
       return {
-        source: buildSource(source),
-        start: buildPosition(startLine, startColumn),
-        end: buildPosition(endLine, endColumn)
+        source: loc.source || null,
+        start: buildPosition(loc.start.line, loc.start.column),
+        end: buildPosition(loc.end.line, loc.end.column)
       };
+    } else {
+      return null;
     }
   }
 
@@ -16067,7 +16019,7 @@ enifed('htmlbars-syntax/handlebars/compiler/base', ['exports', './parser', './as
   exports.parser = _parser["default"];
 
   var yy = {};
-  _utils.extend(yy, _helpers, _ast["default"]);
+  (0, _utils.extend)(yy, _helpers, _ast["default"]);
 
   function parse(input, options) {
     // Just return if an already-compiled AST was passed in.
@@ -17367,13 +17319,194 @@ enifed('htmlbars-syntax/handlebars/utils', ['exports'], function (exports) {
     return (contextPath ? contextPath + '.' : '') + id;
   }
 });
-enifed("htmlbars-syntax/parser", ["exports", "./handlebars/compiler/base", "../htmlbars-syntax", "../simple-html-tokenizer/evented-tokenizer", "../simple-html-tokenizer/entity-parser", "../simple-html-tokenizer/char-refs/full", "./parser/handlebars-node-visitors", "./parser/tokenizer-event-handlers"], function (exports, _handlebarsCompilerBase, _htmlbarsSyntax, _simpleHtmlTokenizerEventedTokenizer, _simpleHtmlTokenizerEntityParser, _simpleHtmlTokenizerCharRefsFull, _parserHandlebarsNodeVisitors, _parserTokenizerEventHandlers) {
+enifed("htmlbars-syntax/node-handlers", ["exports", "./builders", "../htmlbars-util/array-utils", "./utils"], function (exports, _builders, _htmlbarsUtilArrayUtils, _utils) {
+
+  var nodeHandlers = {
+
+    Program: function (program) {
+      var body = [];
+      var node = (0, _builders.buildProgram)(body, program.blockParams, program.loc);
+      var i,
+          l = program.body.length;
+
+      this.elementStack.push(node);
+
+      if (l === 0) {
+        return this.elementStack.pop();
+      }
+
+      for (i = 0; i < l; i++) {
+        this.acceptNode(program.body[i]);
+      }
+
+      this.acceptToken(this.tokenizer.tokenizeEOF());
+
+      // Ensure that that the element stack is balanced properly.
+      var poppedNode = this.elementStack.pop();
+      if (poppedNode !== node) {
+        throw new Error("Unclosed element `" + poppedNode.tag + "` (on line " + poppedNode.loc.start.line + ").");
+      }
+
+      return node;
+    },
+
+    BlockStatement: function (block) {
+      delete block.inverseStrip;
+      delete block.openString;
+      delete block.closeStrip;
+
+      if (this.tokenizer.state === "comment") {
+        this.tokenizer.addChar("{{" + this.sourceForMustache(block) + "}}");
+        return;
+      }
+
+      switchToHandlebars(this);
+      this.acceptToken(block);
+
+      block = acceptCommonNodes(this, block);
+      var program = block.program ? this.acceptNode(block.program) : null;
+      var inverse = block.inverse ? this.acceptNode(block.inverse) : null;
+
+      var node = (0, _builders.buildBlock)(block.path, block.params, block.hash, program, inverse, block.loc);
+      var parentProgram = this.currentElement();
+      (0, _utils.appendChild)(parentProgram, node);
+    },
+
+    MustacheStatement: function (rawMustache) {
+      var path = rawMustache.path;
+      var params = rawMustache.params;
+      var hash = rawMustache.hash;
+      var escaped = rawMustache.escaped;
+      var loc = rawMustache.loc;
+
+      var mustache = _builders["default"].mustache(path, params, hash, !escaped, loc);
+
+      if (this.tokenizer.state === "comment") {
+        this.tokenizer.addChar("{{" + this.sourceForMustache(mustache) + "}}");
+        return;
+      }
+
+      acceptCommonNodes(this, mustache);
+      switchToHandlebars(this);
+      this.acceptToken(mustache);
+
+      return mustache;
+    },
+
+    ContentStatement: function (content) {
+      var changeLines = 0;
+      if (content.rightStripped) {
+        changeLines = leadingNewlineDifference(content.original, content.value);
+      }
+
+      this.tokenizer.line = this.tokenizer.line + changeLines;
+
+      var tokens = this.tokenizer.tokenizePart(content.value);
+
+      return (0, _htmlbarsUtilArrayUtils.forEach)(tokens, this.acceptToken, this);
+    },
+
+    CommentStatement: function (comment) {
+      return comment;
+    },
+
+    PartialStatement: function (partial) {
+      (0, _utils.appendChild)(this.currentElement(), partial);
+      return partial;
+    },
+
+    SubExpression: function (sexpr) {
+      return acceptCommonNodes(this, sexpr);
+    },
+
+    PathExpression: function (path) {
+      delete path.data;
+      delete path.depth;
+
+      return path;
+    },
+
+    Hash: function (hash) {
+      for (var i = 0; i < hash.pairs.length; i++) {
+        this.acceptNode(hash.pairs[i].value);
+      }
+
+      return hash;
+    },
+
+    StringLiteral: function () {},
+    BooleanLiteral: function () {},
+    NumberLiteral: function () {},
+    UndefinedLiteral: function () {},
+    NullLiteral: function () {}
+  };
+
+  function switchToHandlebars(processor) {
+    var token = processor.tokenizer.token;
+
+    if (token && token.type === "Chars") {
+      processor.acceptToken(token);
+      processor.tokenizer.token = null;
+    }
+  }
+
+  function leadingNewlineDifference(original, value) {
+    if (value === "") {
+      // if it is empty, just return the count of newlines
+      // in original
+      return original.split("\n").length - 1;
+    }
+
+    // otherwise, return the number of newlines prior to
+    // `value`
+    var difference = original.split(value)[0];
+    var lines = difference.split(/\n/);
+
+    return lines.length - 1;
+  }
+
+  function acceptCommonNodes(compiler, node) {
+    compiler.acceptNode(node.path);
+
+    if (node.params) {
+      for (var i = 0; i < node.params.length; i++) {
+        compiler.acceptNode(node.params[i]);
+      }
+    } else {
+      node.params = [];
+    }
+
+    if (node.hash) {
+      compiler.acceptNode(node.hash);
+    } else {
+      node.hash = (0, _builders.buildHash)();
+    }
+
+    return node;
+  }
+
+  exports["default"] = nodeHandlers;
+});
+enifed("htmlbars-syntax/parser", ["exports", "./handlebars/compiler/base", "./tokenizer", "../simple-html-tokenizer/entity-parser", "../simple-html-tokenizer/char-refs/full", "./node-handlers", "./token-handlers", "../htmlbars-syntax"], function (exports, _handlebarsCompilerBase, _tokenizer, _simpleHtmlTokenizerEntityParser, _simpleHtmlTokenizerCharRefsFull, _nodeHandlers, _tokenHandlers, _htmlbarsSyntax) {
   exports.preprocess = preprocess;
-  exports.Parser = Parser;
+
+  var splitLines;
+  // IE8 throws away blank pieces when splitting strings with a regex
+  // So we split using a string instead as appropriate
+  if ("foo\n\nbar".split(/\n/).length === 2) {
+    splitLines = function (str) {
+      var clean = str.replace(/\r\n?/g, "\n");
+      return clean.split("\n");
+    };
+  } else {
+    splitLines = function (str) {
+      return str.split(/(?:\r\n?|\n)/g);
+    };
+  }
 
   function preprocess(html, options) {
-    var ast = typeof html === "object" ? html : _handlebarsCompilerBase.parse(html);
-    var combined = new Parser(html, options).acceptNode(ast);
+    var ast = typeof html === "object" ? html : (0, _handlebarsCompilerBase.parse)(html);
+    var combined = new HTMLProcessor(html, options).acceptNode(ast);
 
     if (options && options.plugins && options.plugins.ast) {
       for (var i = 0, l = options.plugins.ast.length; i < l; i++) {
@@ -17390,38 +17523,33 @@ enifed("htmlbars-syntax/parser", ["exports", "./handlebars/compiler/base", "../h
 
   exports["default"] = preprocess;
 
-  var entityParser = new _simpleHtmlTokenizerEntityParser["default"](_simpleHtmlTokenizerCharRefsFull["default"]);
-
-  function Parser(source, options) {
+  function HTMLProcessor(source, options) {
     this.options = options || {};
     this.elementStack = [];
-    this.tokenizer = new _simpleHtmlTokenizerEventedTokenizer["default"](this, entityParser);
-
-    this.currentNode = null;
-    this.currentAttribute = null;
+    this.tokenizer = new _tokenizer.Tokenizer(new _simpleHtmlTokenizerEntityParser["default"](_simpleHtmlTokenizerCharRefsFull["default"]));
+    this.nodeHandlers = _nodeHandlers["default"];
+    this.tokenHandlers = _tokenHandlers["default"];
 
     if (typeof source === "string") {
-      this.source = source.split(/(?:\r\n?|\n)/g);
+      this.source = splitLines(source);
     }
   }
 
-  for (var key in _parserHandlebarsNodeVisitors["default"]) {
-    Parser.prototype[key] = _parserHandlebarsNodeVisitors["default"][key];
-  }
-
-  for (var key in _parserTokenizerEventHandlers["default"]) {
-    Parser.prototype[key] = _parserTokenizerEventHandlers["default"][key];
-  }
-
-  Parser.prototype.acceptNode = function (node) {
-    return this[node.type](node);
+  HTMLProcessor.prototype.acceptNode = function (node) {
+    return this.nodeHandlers[node.type].call(this, node);
   };
 
-  Parser.prototype.currentElement = function () {
+  HTMLProcessor.prototype.acceptToken = function (token) {
+    if (token) {
+      return this.tokenHandlers[token.type].call(this, token);
+    }
+  };
+
+  HTMLProcessor.prototype.currentElement = function () {
     return this.elementStack[this.elementStack.length - 1];
   };
 
-  Parser.prototype.sourceForMustache = function (mustache) {
+  HTMLProcessor.prototype.sourceForMustache = function (mustache) {
     var firstLine = mustache.loc.start.line - 1;
     var lastLine = mustache.loc.end.line - 1;
     var currentLine = firstLine - 1;
@@ -17454,425 +17582,120 @@ enifed("htmlbars-syntax/parser", ["exports", "./handlebars/compiler/base", "../h
     return string.join("\n");
   };
 });
-enifed("htmlbars-syntax/parser/handlebars-node-visitors", ["exports", "../builders", "../utils"], function (exports, _builders, _utils) {
-  exports["default"] = {
+enifed("htmlbars-syntax/token-handlers", ["exports", "./builders", "./utils", "../htmlbars-util/void-tag-names"], function (exports, _builders, _utils, _htmlbarsUtilVoidTagNames) {
 
-    Program: function (program) {
-      var body = [];
-      var node = _builders["default"].program(body, program.blockParams, program.loc);
-      var i,
-          l = program.body.length;
-
-      this.elementStack.push(node);
-
-      if (l === 0) {
-        return this.elementStack.pop();
-      }
-
-      for (i = 0; i < l; i++) {
-        this.acceptNode(program.body[i]);
-      }
-
-      // Ensure that that the element stack is balanced properly.
-      var poppedNode = this.elementStack.pop();
-      if (poppedNode !== node) {
-        throw new Error("Unclosed element `" + poppedNode.tag + "` (on line " + poppedNode.loc.start.line + ").");
-      }
-
-      return node;
+  // Except for `mustache`, all tokens are only allowed outside of
+  // a start or end tag.
+  var tokenHandlers = {
+    Comment: function (token) {
+      var current = this.currentElement();
+      var comment = (0, _builders.buildComment)(token.chars);
+      (0, _utils.appendChild)(current, comment);
     },
 
-    BlockStatement: function (block) {
-      delete block.inverseStrip;
-      delete block.openString;
-      delete block.closeStrip;
+    Chars: function (token) {
+      var current = this.currentElement();
+      var text = (0, _builders.buildText)(token.chars);
+      (0, _utils.appendChild)(current, text);
+    },
 
-      if (this.tokenizer.state === "comment") {
-        this.appendToCommentData("{{" + this.sourceForMustache(block) + "}}");
-        return;
+    StartTag: function (tag) {
+      var element = (0, _builders.buildElement)(tag.tagName, tag.attributes, tag.modifiers || [], []);
+      element.loc = {
+        source: null,
+        start: { line: tag.loc.start.line, column: tag.loc.start.column },
+        end: { line: null, column: null }
+      };
+
+      this.elementStack.push(element);
+      if (_htmlbarsUtilVoidTagNames["default"].hasOwnProperty(tag.tagName) || tag.selfClosing) {
+        tokenHandlers.EndTag.call(this, tag, true);
       }
+    },
 
-      if (this.tokenizer.state !== "comment" && this.tokenizer.state !== "data" && this.tokenizer.state !== "beforeData") {
+    BlockStatement: function () {
+      if (this.tokenizer.state === "comment") {
+        return;
+      } else if (this.tokenizer.state !== "data") {
         throw new Error("A block may only be used inside an HTML element or another block.");
       }
-
-      block = acceptCommonNodes(this, block);
-      var program = block.program ? this.acceptNode(block.program) : null;
-      var inverse = block.inverse ? this.acceptNode(block.inverse) : null;
-
-      var node = _builders["default"].block(block.path, block.params, block.hash, program, inverse, block.loc);
-      var parentProgram = this.currentElement();
-      _utils.appendChild(parentProgram, node);
     },
 
-    MustacheStatement: function (rawMustache) {
+    MustacheStatement: function (mustache) {
       var tokenizer = this.tokenizer;
-      var path = rawMustache.path;
-      var params = rawMustache.params;
-      var hash = rawMustache.hash;
-      var escaped = rawMustache.escaped;
-      var loc = rawMustache.loc;
-
-      var mustache = _builders["default"].mustache(path, params, hash, !escaped, loc);
-
-      if (tokenizer.state === "comment") {
-        this.appendToCommentData("{{" + this.sourceForMustache(mustache) + "}}");
-        return;
-      }
-
-      acceptCommonNodes(this, mustache);
 
       switch (tokenizer.state) {
         // Tag helpers
         case "tagName":
-          addElementModifier(this.currentNode, mustache);
+          tokenizer.addElementModifier(mustache);
           tokenizer.state = "beforeAttributeName";
-          break;
+          return;
         case "beforeAttributeName":
-          addElementModifier(this.currentNode, mustache);
-          break;
+          tokenizer.addElementModifier(mustache);
+          return;
         case "attributeName":
         case "afterAttributeName":
-          this.beginAttributeValue(false);
-          this.finishAttributeValue();
-          addElementModifier(this.currentNode, mustache);
+          tokenizer.finalizeAttributeValue();
+          tokenizer.addElementModifier(mustache);
           tokenizer.state = "beforeAttributeName";
-          break;
+          return;
         case "afterAttributeValueQuoted":
-          addElementModifier(this.currentNode, mustache);
+          tokenizer.addElementModifier(mustache);
           tokenizer.state = "beforeAttributeName";
-          break;
+          return;
 
         // Attribute values
         case "beforeAttributeValue":
-          appendDynamicAttributeValuePart(this.currentAttribute, mustache);
+          tokenizer.markAttributeQuoted(false);
+          tokenizer.addToAttributeValue(mustache);
           tokenizer.state = "attributeValueUnquoted";
-          break;
+          return;
         case "attributeValueDoubleQuoted":
         case "attributeValueSingleQuoted":
         case "attributeValueUnquoted":
-          appendDynamicAttributeValuePart(this.currentAttribute, mustache);
-          break;
+          tokenizer.addToAttributeValue(mustache);
+          return;
 
         // TODO: Only append child when the tokenizer state makes
         // sense to do so, otherwise throw an error.
         default:
-          _utils.appendChild(this.currentElement(), mustache);
-      }
-
-      return mustache;
-    },
-
-    ContentStatement: function (content) {
-      var changeLines = 0;
-      if (content.rightStripped) {
-        changeLines = leadingNewlineDifference(content.original, content.value);
-      }
-
-      this.tokenizer.line = this.tokenizer.line + changeLines;
-      this.tokenizer.tokenizePart(content.value);
-      this.tokenizer.flushData();
-    },
-
-    CommentStatement: function (comment) {
-      return comment;
-    },
-
-    PartialStatement: function (partial) {
-      _utils.appendChild(this.currentElement(), partial);
-      return partial;
-    },
-
-    SubExpression: function (sexpr) {
-      return acceptCommonNodes(this, sexpr);
-    },
-
-    PathExpression: function (path) {
-      delete path.data;
-      delete path.depth;
-
-      return path;
-    },
-
-    Hash: function (hash) {
-      for (var i = 0; i < hash.pairs.length; i++) {
-        this.acceptNode(hash.pairs[i].value);
-      }
-
-      return hash;
-    },
-
-    StringLiteral: function () {},
-    BooleanLiteral: function () {},
-    NumberLiteral: function () {},
-    UndefinedLiteral: function () {},
-    NullLiteral: function () {}
-  };
-
-  function leadingNewlineDifference(original, value) {
-    if (value === "") {
-      // if it is empty, just return the count of newlines
-      // in original
-      return original.split("\n").length - 1;
-    }
-
-    // otherwise, return the number of newlines prior to
-    // `value`
-    var difference = original.split(value)[0];
-    var lines = difference.split(/\n/);
-
-    return lines.length - 1;
-  }
-
-  function acceptCommonNodes(compiler, node) {
-    compiler.acceptNode(node.path);
-
-    if (node.params) {
-      for (var i = 0; i < node.params.length; i++) {
-        compiler.acceptNode(node.params[i]);
-      }
-    } else {
-      node.params = [];
-    }
-
-    if (node.hash) {
-      compiler.acceptNode(node.hash);
-    } else {
-      node.hash = _builders["default"].hash();
-    }
-
-    return node;
-  }
-
-  function addElementModifier(element, mustache) {
-    var path = mustache.path;
-    var params = mustache.params;
-    var hash = mustache.hash;
-    var loc = mustache.loc;
-
-    var modifier = _builders["default"].elementModifier(path, params, hash, loc);
-    element.modifiers.push(modifier);
-  }
-
-  function appendDynamicAttributeValuePart(attribute, part) {
-    attribute.isDynamic = true;
-    attribute.parts.push(part);
-  }
-});
-enifed("htmlbars-syntax/parser/tokenizer-event-handlers", ["exports", "../../htmlbars-util/void-tag-names", "../builders", "../utils"], function (exports, _htmlbarsUtilVoidTagNames, _builders, _utils) {
-  exports["default"] = {
-    reset: function () {
-      this.currentNode = null;
-    },
-
-    // Comment
-
-    beginComment: function () {
-      this.currentNode = _builders["default"].comment("");
-    },
-
-    appendToCommentData: function (char) {
-      this.currentNode.value += char;
-    },
-
-    finishComment: function () {
-      _utils.appendChild(this.currentElement(), this.currentNode);
-    },
-
-    // Data
-
-    beginData: function () {
-      this.currentNode = _builders["default"].text();
-    },
-
-    appendToData: function (char) {
-      this.currentNode.chars += char;
-    },
-
-    finishData: function () {
-      _utils.appendChild(this.currentElement(), this.currentNode);
-    },
-
-    // Tags - basic
-
-    beginStartTag: function () {
-      this.currentNode = {
-        type: "StartTag",
-        name: "",
-        attributes: [],
-        modifiers: [],
-        selfClosing: false,
-        loc: null
-      };
-    },
-
-    beginEndTag: function () {
-      this.currentNode = {
-        type: "EndTag",
-        name: "",
-        attributes: [],
-        modifiers: [],
-        selfClosing: false,
-        loc: null
-      };
-    },
-
-    finishTag: function () {
-      var _tokenizer = this.tokenizer;
-      var tagLine = _tokenizer.tagLine;
-      var tagColumn = _tokenizer.tagColumn;
-      var line = _tokenizer.line;
-      var column = _tokenizer.column;
-
-      var tag = this.currentNode;
-      tag.loc = _builders["default"].loc(tagLine, tagColumn, line, column);
-
-      if (tag.type === "StartTag") {
-        this.finishStartTag();
-
-        if (_htmlbarsUtilVoidTagNames["default"].hasOwnProperty(tag.name) || tag.selfClosing) {
-          this.finishEndTag(true);
-        }
-      } else if (tag.type === "EndTag") {
-        this.finishEndTag(false);
+          (0, _utils.appendChild)(this.currentElement(), mustache);
       }
     },
 
-    finishStartTag: function () {
-      var _currentNode = this.currentNode;
-      var name = _currentNode.name;
-      var attributes = _currentNode.attributes;
-      var modifiers = _currentNode.modifiers;
-
-      var loc = _builders["default"].loc(this.tokenizer.tagLine, this.tokenizer.tagColumn);
-      var element = _builders["default"].element(name, attributes, modifiers, [], loc);
-      this.elementStack.push(element);
-    },
-
-    finishEndTag: function (isVoid) {
-      var tag = this.currentNode;
-
+    EndTag: function (tag, selfClosing) {
       var element = this.elementStack.pop();
       var parent = this.currentElement();
       var disableComponentGeneration = this.options.disableComponentGeneration === true;
 
-      validateEndTag(tag, element, isVoid);
+      validateEndTag(tag, element, selfClosing);
 
-      element.loc.end.line = this.tokenizer.line;
-      element.loc.end.column = this.tokenizer.column;
+      element.loc.end.line = tag.loc.end.line;
+      element.loc.end.column = tag.loc.end.column;
 
       if (disableComponentGeneration || element.tag.indexOf("-") === -1) {
-        _utils.appendChild(parent, element);
+        (0, _utils.appendChild)(parent, element);
       } else {
-        var program = _builders["default"].program(element.children);
-        _utils.parseComponentBlockParams(element, program);
-        var component = _builders["default"].component(element.tag, element.attributes, program, element.loc);
-        _utils.appendChild(parent, component);
+        var program = (0, _builders.buildProgram)(element.children);
+        (0, _utils.parseComponentBlockParams)(element, program);
+        var component = (0, _builders.buildComponent)(element.tag, element.attributes, program, element.loc);
+        (0, _utils.appendChild)(parent, component);
       }
-    },
-
-    markTagAsSelfClosing: function () {
-      this.currentNode.selfClosing = true;
-    },
-
-    // Tags - name
-
-    appendToTagName: function (char) {
-      this.currentNode.name += char;
-    },
-
-    // Tags - attributes
-
-    beginAttribute: function () {
-      var tag = this.currentNode;
-      if (tag.type === "EndTag") {
-        throw new Error("Invalid end tag: closing tag must not have attributes, " + ("in `" + tag.name + "` (on line " + this.tokenizer.line + ")."));
-      }
-
-      this.currentAttribute = {
-        name: "",
-        parts: [],
-        isQuoted: false,
-        isDynamic: false
-      };
-    },
-
-    appendToAttributeName: function (char) {
-      this.currentAttribute.name += char;
-    },
-
-    beginAttributeValue: function (isQuoted) {
-      this.currentAttribute.isQuoted = isQuoted;
-    },
-
-    appendToAttributeValue: function (char) {
-      var parts = this.currentAttribute.parts;
-
-      if (typeof parts[parts.length - 1] === "string") {
-        parts[parts.length - 1] += char;
-      } else {
-        parts.push(char);
-      }
-    },
-
-    finishAttributeValue: function () {
-      var _currentAttribute = this.currentAttribute;
-      var name = _currentAttribute.name;
-      var parts = _currentAttribute.parts;
-      var isQuoted = _currentAttribute.isQuoted;
-      var isDynamic = _currentAttribute.isDynamic;
-
-      var value = assembleAttributeValue(parts, isQuoted, isDynamic, this.tokenizer.line);
-
-      this.currentNode.attributes.push(_builders["default"].attr(name, value));
     }
+
   };
-
-  function assembleAttributeValue(parts, isQuoted, isDynamic, line) {
-    if (isDynamic) {
-      if (isQuoted) {
-        return assembleConcatenatedValue(parts);
-      } else {
-        if (parts.length === 1) {
-          return parts[0];
-        } else {
-          throw new Error("An unquoted attribute value must be a string or a mustache, " + "preceeded by whitespace or a '=' character, and " + ("followed by whitespace or a '>' character (on line " + line + ")"));
-        }
-      }
-    } else {
-      return _builders["default"].text(parts.length > 0 ? parts[0] : "");
-    }
-  }
-
-  function assembleConcatenatedValue(parts) {
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i];
-
-      if (typeof part === "string") {
-        parts[i] = _builders["default"].string(parts[i]);
-      } else {
-        if (part.type === "MustacheStatement") {
-          parts[i] = _utils.unwrapMustache(part);
-        } else {
-          throw new Error("Unsupported node in quoted attribute value: " + part.type);
-        }
-      }
-    }
-
-    return _builders["default"].concat(parts);
-  }
 
   function validateEndTag(tag, element, selfClosing) {
     var error;
 
-    if (_htmlbarsUtilVoidTagNames["default"][tag.name] && !selfClosing) {
+    if (_htmlbarsUtilVoidTagNames["default"][tag.tagName] && !selfClosing) {
       // EngTag is also called by StartTag for void and self-closing tags (i.e.
       // <input> or <br />, so we need to check for that here. Otherwise, we would
       // throw an error for those cases.
       error = "Invalid end tag " + formatEndTagInfo(tag) + " (void elements cannot have end tags).";
     } else if (element.tag === undefined) {
       error = "Closing tag " + formatEndTagInfo(tag) + " without an open tag.";
-    } else if (element.tag !== tag.name) {
+    } else if (element.tag !== tag.tagName) {
       error = "Closing tag " + formatEndTagInfo(tag) + " did not match last open tag `" + element.tag + "` (on line " + element.loc.start.line + ").";
     }
 
@@ -17882,8 +17705,109 @@ enifed("htmlbars-syntax/parser/tokenizer-event-handlers", ["exports", "../../htm
   }
 
   function formatEndTagInfo(tag) {
-    return "`" + tag.name + "` (on line " + tag.loc.end.line + ")";
+    return "`" + tag.tagName + "` (on line " + tag.loc.end.line + ")";
   }
+
+  exports["default"] = tokenHandlers;
+});
+/*block*/
+enifed("htmlbars-syntax/tokenizer", ["exports", "../simple-html-tokenizer", "./utils", "../htmlbars-util/array-utils", "./builders"], function (exports, _simpleHtmlTokenizer, _utils, _htmlbarsUtilArrayUtils, _builders) {
+
+  _simpleHtmlTokenizer.Tokenizer.prototype.createAttribute = function (char) {
+    if (this.token.type === "EndTag") {
+      throw new Error("Invalid end tag: closing tag must not have attributes, in " + formatTokenInfo(this) + ".");
+    }
+    this.currentAttribute = _builders["default"].attr(char.toLowerCase(), [], null);
+    this.token.attributes.push(this.currentAttribute);
+    this.state = "attributeName";
+  };
+
+  _simpleHtmlTokenizer.Tokenizer.prototype.markAttributeQuoted = function (value) {
+    this.currentAttribute.quoted = value;
+  };
+
+  _simpleHtmlTokenizer.Tokenizer.prototype.addToAttributeName = function (char) {
+    this.currentAttribute.name += char;
+  };
+
+  _simpleHtmlTokenizer.Tokenizer.prototype.addToAttributeValue = function (char) {
+    var value = this.currentAttribute.value;
+
+    if (!this.currentAttribute.quoted && char === "/") {
+      throw new Error("A space is required between an unquoted attribute value and `/`, in " + formatTokenInfo(this) + ".");
+    }
+    if (!this.currentAttribute.quoted && value.length > 0 && (char.type === "MustacheStatement" || value[0].type === "MustacheStatement")) {
+      throw new Error("Unquoted attribute value must be a single string or mustache (on line " + this.line + ")");
+    }
+
+    if (typeof char === "object") {
+      if (char.type === "MustacheStatement") {
+        value.push(char);
+      } else {
+        throw new Error("Unsupported node in attribute value: " + char.type);
+      }
+    } else {
+      if (value.length > 0 && value[value.length - 1].type === "TextNode") {
+        value[value.length - 1].chars += char;
+      } else {
+        value.push(_builders["default"].text(char));
+      }
+    }
+  };
+
+  _simpleHtmlTokenizer.Tokenizer.prototype.finalizeAttributeValue = function () {
+    if (this.currentAttribute) {
+      this.currentAttribute.value = prepareAttributeValue(this.currentAttribute);
+      delete this.currentAttribute.quoted;
+      delete this.currentAttribute;
+    }
+  };
+
+  _simpleHtmlTokenizer.Tokenizer.prototype.addElementModifier = function (mustache) {
+    if (!this.token.modifiers) {
+      this.token.modifiers = [];
+    }
+
+    var path = mustache.path;
+    var params = mustache.params;
+    var hash = mustache.hash;
+    var loc = mustache.loc;
+
+    var modifier = _builders["default"].elementModifier(path, params, hash, loc);
+    this.token.modifiers.push(modifier);
+  };
+
+  function prepareAttributeValue(attr) {
+    var parts = attr.value;
+    var length = parts.length;
+
+    if (length === 0) {
+      return _builders["default"].text("");
+    } else if (length === 1 && parts[0].type === "TextNode") {
+      return parts[0];
+    } else if (!attr.quoted) {
+      return parts[0];
+    } else {
+      return _builders["default"].concat((0, _htmlbarsUtilArrayUtils.map)(parts, prepareConcatPart));
+    }
+  }
+
+  function prepareConcatPart(node) {
+    switch (node.type) {
+      case "TextNode":
+        return _builders["default"].string(node.chars);
+      case "MustacheStatement":
+        return (0, _utils.unwrapMustache)(node);
+      default:
+        throw new Error("Unsupported node in quoted attribute value: " + node.type);
+    }
+  }
+
+  function formatTokenInfo(tokenizer) {
+    return "`" + tokenizer.token.tagName + "` (on line " + tokenizer.line + ")";
+  }
+
+  exports.Tokenizer = _simpleHtmlTokenizer.Tokenizer;
 });
 enifed('htmlbars-syntax/utils', ['exports', '../htmlbars-util/array-utils'], function (exports, _htmlbarsUtilArrayUtils) {
   exports.parseComponentBlockParams = parseComponentBlockParams;
@@ -17909,7 +17833,7 @@ enifed('htmlbars-syntax/utils', ['exports', '../htmlbars-util/array-utils'], fun
       attrNames.push(element.attributes[i].name);
     }
 
-    var asIndex = _htmlbarsUtilArrayUtils.indexOfArray(attrNames, 'as');
+    var asIndex = (0, _htmlbarsUtilArrayUtils.indexOfArray)(attrNames, 'as');
 
     if (asIndex !== -1 && l > asIndex && attrNames[asIndex + 1].charAt(0) === '|') {
       // Some basic validation, since we're doing the parsing ourselves
@@ -18026,6 +17950,7 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
   exports.normalizeInnerHTML = normalizeInnerHTML;
   exports.isCheckedInputHTML = isCheckedInputHTML;
   exports.getTextContent = getTextContent;
+  exports.createObject = createObject;
 
   function equalInnerHTML(fragment, html) {
     var actualHTML = normalizeInnerHTML(fragment.innerHTML);
@@ -18049,6 +17974,13 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
     equalInnerHTML(div, html);
   }
 
+  // IE8 removes comments and does other unspeakable things with innerHTML
+  var ie8GenerateTokensNeeded = (function () {
+    var div = document.createElement("div");
+    div.innerHTML = "<!-- foobar -->";
+    return div.innerHTML === "";
+  })();
+
   function generateTokens(fragmentOrHtml) {
     var div = document.createElement("div");
     if (typeof fragmentOrHtml === "string") {
@@ -18056,8 +17988,14 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
     } else {
       div.appendChild(fragmentOrHtml.cloneNode(true));
     }
-
-    return { tokens: _simpleHtmlTokenizer.tokenize(div.innerHTML), html: div.innerHTML };
+    if (ie8GenerateTokensNeeded) {
+      // IE8 drops comments and does other unspeakable things on `innerHTML`.
+      // So in that case we do it to both the expected and actual so that they match.
+      var div2 = document.createElement("div");
+      div2.innerHTML = div.innerHTML;
+      div.innerHTML = div2.innerHTML;
+    }
+    return { tokens: (0, _simpleHtmlTokenizer.tokenize)(div.innerHTML), html: div.innerHTML };
   }
 
   function equalTokens(fragment, html, message) {
@@ -18074,10 +18012,10 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
     function normalizeTokens(token) {
       if (token.type === "StartTag") {
         token.attributes = token.attributes.sort(function (a, b) {
-          if (a[0] > b[0]) {
+          if (a.name > b.name) {
             return 1;
           }
-          if (a[0] < b[0]) {
+          if (a.name < b.name) {
             return -1;
           }
           return 0;
@@ -18085,8 +18023,8 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
       }
     }
 
-    _htmlbarsUtilArrayUtils.forEach(fragTokens.tokens, normalizeTokens);
-    _htmlbarsUtilArrayUtils.forEach(htmlTokens.tokens, normalizeTokens);
+    (0, _htmlbarsUtilArrayUtils.forEach)(fragTokens.tokens, normalizeTokens);
+    (0, _htmlbarsUtilArrayUtils.forEach)(htmlTokens.tokens, normalizeTokens);
 
     var msg = "Expected: " + html + "; Actual: " + fragTokens.html;
 
@@ -18096,6 +18034,11 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
 
     deepEqual(fragTokens.tokens, htmlTokens.tokens, msg);
   }
+
+  // detect weird IE8 html strings
+  var ie8InnerHTMLTestElement = document.createElement("div");
+  ie8InnerHTMLTestElement.setAttribute("id", "womp");
+  var ie8InnerHTML = ie8InnerHTMLTestElement.outerHTML.indexOf("id=womp") > -1;
 
   // detect side-effects of cloning svg elements in IE9-11
   var ieSVGInnerHTML = (function () {
@@ -18110,6 +18053,28 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
   })();
 
   function normalizeInnerHTML(actualHTML) {
+    if (ie8InnerHTML) {
+      // drop newlines in IE8
+      actualHTML = actualHTML.replace(/\r\n/gm, "");
+      // downcase ALLCAPS tags in IE8
+      actualHTML = actualHTML.replace(/<\/?[A-Z\-]+/gi, function (tag) {
+        return tag.toLowerCase();
+      });
+      // quote ids in IE8
+      actualHTML = actualHTML.replace(/id=([^ >]+)/gi, function (match, id) {
+        return "id=\"" + id + "\"";
+      });
+      // IE8 adds ':' to some tags
+      // <keygen> becomes <:keygen>
+      actualHTML = actualHTML.replace(/<(\/?):([^ >]+)/gi, function (match, slash, tag) {
+        return "<" + slash + tag;
+      });
+
+      // Normalize the style attribute
+      actualHTML = actualHTML.replace(/style="(.+?)"/gi, function (match, val) {
+        return "style=\"" + val.toLowerCase() + ";\"";
+      });
+    }
     if (ieSVGInnerHTML) {
       // Replace `<svg xmlns="http://www.w3.org/2000/svg" height="50%" />` with `<svg height="50%"></svg>`, etc.
       // drop namespace attribute
@@ -18141,6 +18106,19 @@ enifed("htmlbars-test-helpers", ["exports", "../simple-html-tokenizer", "../html
       return el.nodeValue;
     } else {
       return el[textProperty];
+    }
+  }
+
+  // IE8 does not have Object.create, so use a polyfill if needed.
+  // Polyfill based on Mozilla's (MDN)
+
+  function createObject(obj) {
+    if (typeof Object.create === "function") {
+      return Object.create(obj);
+    } else {
+      var Temp = function () {};
+      Temp.prototype = obj;
+      return new Temp();
     }
   }
 });
@@ -18446,8 +18424,10 @@ enifed('htmlbars-util/namespaces', ['exports'], function (exports) {
     return namespace || null;
   }
 });
-enifed("htmlbars-util/object-utils", ["exports"], function (exports) {
+enifed('htmlbars-util/object-utils', ['exports'], function (exports) {
   exports.merge = merge;
+  exports.createObject = createObject;
+  exports.objectKeys = objectKeys;
   exports.shallowCopy = shallowCopy;
   exports.keySet = keySet;
   exports.keyLength = keyLength;
@@ -18462,8 +18442,41 @@ enifed("htmlbars-util/object-utils", ["exports"], function (exports) {
     return options;
   }
 
+  // IE8 does not have Object.create, so use a polyfill if needed.
+  // Polyfill based on Mozilla's (MDN)
+
+  function createObject(obj) {
+    if (typeof Object.create === 'function') {
+      return Object.create(obj);
+    } else {
+      var Temp = function () {};
+      Temp.prototype = obj;
+      return new Temp();
+    }
+  }
+
+  function objectKeys(obj) {
+    if (typeof Object.keys === 'function') {
+      return Object.keys(obj);
+    } else {
+      return legacyKeys(obj);
+    }
+  }
+
   function shallowCopy(obj) {
     return merge({}, obj);
+  }
+
+  function legacyKeys(obj) {
+    var keys = [];
+
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) {
+        keys.push(prop);
+      }
+    }
+
+    return keys;
   }
 
   function keySet(obj) {
@@ -18686,7 +18699,7 @@ enifed("htmlbars-util/template-utils", ["exports", "../htmlbars-util/morph-utils
       destroy(morph);
     }
 
-    _htmlbarsUtilMorphUtils.visitChildren(morph.childNodes, destroyNode);
+    (0, _htmlbarsUtilMorphUtils.visitChildren)(morph.childNodes, destroyNode);
 
     // TODO: Deal with logical children that are not in the DOM tree
     morph.clear();
@@ -18725,7 +18738,7 @@ enifed("htmlbars-util/void-tag-names", ["exports", "./array-utils"], function (e
   var voidTagNames = "area base br col command embed hr img input keygen link meta param source track wbr";
   var voidMap = {};
 
-  _arrayUtils.forEach(voidTagNames.split(" "), function (tagName) {
+  (0, _arrayUtils.forEach)(voidTagNames.split(" "), function (tagName) {
     voidMap[tagName] = true;
   });
 
@@ -18780,7 +18793,7 @@ enifed('morph-range', ['exports', './morph-range/utils'], function (exports, _mo
     switch (type) {
       case 'string':
         if (this.parseTextAsHTML) {
-          return this.domHelper.setMorphHTML(this, content);
+          return this.setHTML(content);
         }
         return this.setText(content);
       case 'object':
@@ -18853,8 +18866,8 @@ enifed('morph-range', ['exports', './morph-range/utils'], function (exports, _mo
 
       var parentNode = previousFirstNode.parentNode;
       if (parentNode !== null) {
-        _morphRangeUtils.insertBefore(parentNode, firstNode, lastNode, previousFirstNode);
-        _morphRangeUtils.clear(parentNode, previousFirstNode, this.lastNode);
+        (0, _morphRangeUtils.insertBefore)(parentNode, firstNode, lastNode, previousFirstNode);
+        (0, _morphRangeUtils.clear)(parentNode, previousFirstNode, this.lastNode);
       }
     }
 
@@ -18877,7 +18890,7 @@ enifed('morph-range', ['exports', './morph-range/utils'], function (exports, _mo
     this.firstNode = null;
     this.lastNode = null;
 
-    _morphRangeUtils.clear(parentNode, firstNode, lastNode);
+    (0, _morphRangeUtils.clear)(parentNode, firstNode, lastNode);
   };
 
   Morph.prototype.unlink = function Morph$unlink() {
@@ -18984,12 +18997,18 @@ enifed('morph-range', ['exports', './morph-range/utils'], function (exports, _mo
     }
   };
 
-  Morph.prototype.insertBeforeNode = function Morph$insertBeforeNode(parentNode, refNode) {
-    _morphRangeUtils.insertBefore(parentNode, this.firstNode, this.lastNode, refNode);
+  Morph.prototype.insertBeforeNode = function Morph$insertBeforeNode(parent, reference) {
+    var current = this.firstNode;
+
+    while (current) {
+      var next = current.nextSibling;
+      parent.insertBefore(current, reference);
+      current = next;
+    }
   };
 
-  Morph.prototype.appendToNode = function Morph$appendToNode(parentNode) {
-    _morphRangeUtils.insertBefore(parentNode, this.firstNode, this.lastNode, null);
+  Morph.prototype.appendToNode = function Morph$appendToNode(parent) {
+    this.insertBeforeNode(parent, null);
   };
 
   exports["default"] = Morph;
@@ -19041,11 +19060,11 @@ enifed('morph-range/morph-list', ['exports', './utils'], function (exports, _uti
       var parentNode = mountedMorph.firstNode.parentNode;
       var referenceNode = referenceMorph ? referenceMorph.firstNode : mountedMorph.lastNode.nextSibling;
 
-      _utils.insertBefore(parentNode, morph.firstNode, morph.lastNode, referenceNode);
+      (0, _utils.insertBefore)(parentNode, morph.firstNode, morph.lastNode, referenceNode);
 
       // was not in list mode replace current content
       if (!this.firstChildMorph) {
-        _utils.clear(this.mountedMorph.firstNode.parentNode, this.mountedMorph.firstNode, this.mountedMorph.lastNode);
+        (0, _utils.clear)(this.mountedMorph.firstNode.parentNode, this.mountedMorph.firstNode, this.mountedMorph.lastNode);
       }
     }
 
@@ -19116,21 +19135,22 @@ enifed("morph-range/utils", ["exports"], function (exports) {
     } while (node);
   }
 
-  function insertBefore(parentNode, firstNode, lastNode, refNode) {
-    var node = firstNode;
-    var nextNode;
+  function insertBefore(parentNode, firstNode, lastNode, _refNode) {
+    var node = lastNode;
+    var refNode = _refNode;
+    var prevNode;
     do {
-      nextNode = node.nextSibling;
+      prevNode = node.previousSibling;
       parentNode.insertBefore(node, refNode);
-      if (node === lastNode) {
+      if (node === firstNode) {
         break;
       }
-      node = nextNode;
+      refNode = node;
+      node = prevNode;
     } while (node);
   }
 });
-enifed('simple-html-tokenizer', ['exports', './simple-html-tokenizer/evented-tokenizer', './simple-html-tokenizer/tokenizer', './simple-html-tokenizer/tokenize', './simple-html-tokenizer/generator', './simple-html-tokenizer/generate', './simple-html-tokenizer/tokens'], function (exports, _simpleHtmlTokenizerEventedTokenizer, _simpleHtmlTokenizerTokenizer, _simpleHtmlTokenizerTokenize, _simpleHtmlTokenizerGenerator, _simpleHtmlTokenizerGenerate, _simpleHtmlTokenizerTokens) {
-  exports.EventedTokenizer = _simpleHtmlTokenizerEventedTokenizer["default"];
+enifed('simple-html-tokenizer', ['exports', './simple-html-tokenizer/tokenizer', './simple-html-tokenizer/tokenize', './simple-html-tokenizer/generator', './simple-html-tokenizer/generate', './simple-html-tokenizer/tokens'], function (exports, _simpleHtmlTokenizerTokenizer, _simpleHtmlTokenizerTokenize, _simpleHtmlTokenizerGenerator, _simpleHtmlTokenizerGenerate, _simpleHtmlTokenizerTokens) {
   exports.Tokenizer = _simpleHtmlTokenizerTokenizer["default"];
   exports.tokenize = _simpleHtmlTokenizerTokenize["default"];
   exports.Generator = _simpleHtmlTokenizerGenerator["default"];
@@ -21285,22 +21305,22 @@ enifed('simple-html-tokenizer/entity-parser', ['exports'], function (exports) {
   }
 
   EntityParser.prototype.parse = function (tokenizer) {
-    var input = tokenizer.input.slice(tokenizer.index);
+    var input = tokenizer.input.slice(tokenizer["char"]);
     var matches = input.match(/^#(?:x|X)([0-9A-Fa-f]+);/);
     if (matches) {
-      tokenizer.index += matches[0].length;
+      tokenizer["char"] += matches[0].length;
       return String.fromCharCode(parseInt(matches[1], 16));
     }
     matches = input.match(/^#([0-9]+);/);
     if (matches) {
-      tokenizer.index += matches[0].length;
+      tokenizer["char"] += matches[0].length;
       return String.fromCharCode(parseInt(matches[1], 10));
     }
     matches = input.match(/^([A-Za-z]+);/);
     if (matches) {
       var codepoints = this.namedCodepoints[matches[1]];
       if (codepoints) {
-        tokenizer.index += matches[0].length;
+        tokenizer["char"] += matches[0].length;
         for (var i = 0, buffer = ''; i < codepoints.length; i++) {
           buffer += String.fromCharCode(codepoints[i]);
         }
@@ -21310,391 +21330,6 @@ enifed('simple-html-tokenizer/entity-parser', ['exports'], function (exports) {
   };
 
   exports["default"] = EntityParser;
-});
-enifed('simple-html-tokenizer/evented-tokenizer', ['exports', './utils'], function (exports, _utils) {
-
-  function EventedTokenizer(delegate, entityParser) {
-    this.delegate = delegate;
-    this.entityParser = entityParser;
-
-    this.state = null;
-    this.input = null;
-
-    this.index = -1;
-    this.line = -1;
-    this.column = -1;
-    this.tagLine = -1;
-    this.tagColumn = -1;
-
-    this.reset();
-  }
-
-  EventedTokenizer.prototype = {
-    reset: function () {
-      this.state = 'beforeData';
-      this.input = '';
-
-      this.index = 0;
-      this.line = 1;
-      this.column = 0;
-
-      this.tagLine = -1;
-      this.tagColumn = -1;
-
-      this.delegate.reset();
-    },
-
-    tokenize: function (input) {
-      this.reset();
-      this.tokenizePart(input);
-      this.tokenizeEOF();
-    },
-
-    tokenizePart: function (input) {
-      this.input += _utils.preprocessInput(input);
-
-      while (this.index < this.input.length) {
-        this.states[this.state].call(this);
-      }
-    },
-
-    tokenizeEOF: function () {
-      this.flushData();
-    },
-
-    flushData: function () {
-      if (this.state === 'data') {
-        this.delegate.finishData();
-        this.state = 'beforeData';
-      }
-    },
-
-    peek: function () {
-      return this.input.charAt(this.index);
-    },
-
-    consume: function () {
-      var char = this.peek();
-
-      this.index++;
-
-      if (char === '\n') {
-        this.line++;
-        this.column = 0;
-      } else {
-        this.column++;
-      }
-
-      return char;
-    },
-
-    consumeCharRef: function () {
-      return this.entityParser.parse(this);
-    },
-
-    markTagStart: function () {
-      this.tagLine = this.line;
-      this.tagColumn = this.column;
-    },
-
-    states: {
-      beforeData: function () {
-        var char = this.peek();
-
-        if (char === '<') {
-          this.state = 'tagOpen';
-          this.markTagStart();
-          this.consume();
-        } else {
-          this.state = 'data';
-          this.delegate.beginData();
-        }
-      },
-
-      data: function () {
-        var char = this.peek();
-
-        if (char === '<') {
-          this.delegate.finishData();
-          this.state = 'tagOpen';
-          this.markTagStart();
-          this.consume();
-        } else if (char === '&') {
-          this.consume();
-          this.delegate.appendToData(this.consumeCharRef() || '&');
-        } else {
-          this.consume();
-          this.delegate.appendToData(char);
-        }
-      },
-
-      tagOpen: function () {
-        var char = this.consume();
-
-        if (char === '!') {
-          this.state = 'markupDeclaration';
-        } else if (char === '/') {
-          this.state = 'endTagOpen';
-        } else if (_utils.isAlpha(char)) {
-          this.state = 'tagName';
-          this.delegate.beginStartTag();
-          this.delegate.appendToTagName(char.toLowerCase());
-        }
-      },
-
-      markupDeclaration: function () {
-        var char = this.consume();
-
-        if (char === '-' && this.input.charAt(this.index) === '-') {
-          this.index++;
-          this.state = 'commentStart';
-          this.delegate.beginComment();
-        }
-      },
-
-      commentStart: function () {
-        var char = this.consume();
-
-        if (char === '-') {
-          this.state = 'commentStartDash';
-        } else if (char === '>') {
-          this.delegate.finishComment();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.appendToCommentData(char);
-          this.state = 'comment';
-        }
-      },
-
-      commentStartDash: function () {
-        var char = this.consume();
-
-        if (char === '-') {
-          this.state = 'commentEnd';
-        } else if (char === '>') {
-          this.delegate.finishComment();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.appendToCommentData('-');
-          this.state = 'comment';
-        }
-      },
-
-      comment: function () {
-        var char = this.consume();
-
-        if (char === '-') {
-          this.state = 'commentEndDash';
-        } else {
-          this.delegate.appendToCommentData(char);
-        }
-      },
-
-      commentEndDash: function () {
-        var char = this.consume();
-
-        if (char === '-') {
-          this.state = 'commentEnd';
-        } else {
-          this.delegate.appendToCommentData('-' + char);
-          this.state = 'comment';
-        }
-      },
-
-      commentEnd: function () {
-        var char = this.consume();
-
-        if (char === '>') {
-          this.delegate.finishComment();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.appendToCommentData('--' + char);
-          this.state = 'comment';
-        }
-      },
-
-      tagName: function () {
-        var char = this.consume();
-
-        if (_utils.isSpace(char)) {
-          this.state = 'beforeAttributeName';
-        } else if (char === '/') {
-          this.state = 'selfClosingStartTag';
-        } else if (char === '>') {
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.appendToTagName(char);
-        }
-      },
-
-      beforeAttributeName: function () {
-        var char = this.consume();
-
-        if (_utils.isSpace(char)) {
-          return;
-        } else if (char === '/') {
-          this.state = 'selfClosingStartTag';
-        } else if (char === '>') {
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.state = 'attributeName';
-          this.delegate.beginAttribute();
-          this.delegate.appendToAttributeName(char);
-        }
-      },
-
-      attributeName: function () {
-        var char = this.consume();
-
-        if (_utils.isSpace(char)) {
-          this.state = 'afterAttributeName';
-        } else if (char === '/') {
-          this.state = 'selfClosingStartTag';
-        } else if (char === '=') {
-          this.state = 'beforeAttributeValue';
-        } else if (char === '>') {
-          this.delegate.beginAttributeValue(false);
-          this.delegate.finishAttributeValue();
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.appendToAttributeName(char);
-        }
-      },
-
-      afterAttributeName: function () {
-        var char = this.consume();
-
-        if (_utils.isSpace(char)) {
-          return;
-        } else if (char === '/') {
-          this.state = 'selfClosingStartTag';
-        } else if (char === '=') {
-          this.state = 'beforeAttributeValue';
-        } else if (char === '>') {
-          this.delegate.beginAttributeValue(false);
-          this.delegate.finishAttributeValue();
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.beginAttributeValue(false);
-          this.delegate.finishAttributeValue();
-          this.state = 'attributeName';
-          this.delegate.beginAttribute();
-          this.delegate.appendToAttributeName(char);
-        }
-      },
-
-      beforeAttributeValue: function () {
-        var char = this.consume();
-
-        if (_utils.isSpace(char)) {} else if (char === '"') {
-          this.state = 'attributeValueDoubleQuoted';
-          this.delegate.beginAttributeValue(true);
-        } else if (char === '\'') {
-          this.state = 'attributeValueSingleQuoted';
-          this.delegate.beginAttributeValue(true);
-        } else if (char === '>') {
-          this.delegate.beginAttributeValue(false);
-          this.delegate.finishAttributeValue();
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.state = 'attributeValueUnquoted';
-          this.delegate.beginAttributeValue(false);
-          this.delegate.appendToAttributeValue(char);
-        }
-      },
-
-      attributeValueDoubleQuoted: function () {
-        var char = this.consume();
-
-        if (char === '"') {
-          this.delegate.finishAttributeValue();
-          this.state = 'afterAttributeValueQuoted';
-        } else if (char === '&') {
-          this.delegate.appendToAttributeValue(this.consumeCharRef('"') || '&');
-        } else {
-          this.delegate.appendToAttributeValue(char);
-        }
-      },
-
-      attributeValueSingleQuoted: function () {
-        var char = this.consume();
-
-        if (char === '\'') {
-          this.delegate.finishAttributeValue();
-          this.state = 'afterAttributeValueQuoted';
-        } else if (char === '&') {
-          this.delegate.appendToAttributeValue(this.consumeCharRef('\'') || '&');
-        } else {
-          this.delegate.appendToAttributeValue(char);
-        }
-      },
-
-      attributeValueUnquoted: function () {
-        var char = this.consume();
-
-        if (_utils.isSpace(char)) {
-          this.delegate.finishAttributeValue();
-          this.state = 'beforeAttributeName';
-        } else if (char === '&') {
-          this.delegate.appendToAttributeValue(this.consumeCharRef('>') || '&');
-        } else if (char === '>') {
-          this.delegate.finishAttributeValue();
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.delegate.appendToAttributeValue(char);
-        }
-      },
-
-      afterAttributeValueQuoted: function () {
-        var char = this.peek();
-
-        if (_utils.isSpace(char)) {
-          this.consume();
-          this.state = 'beforeAttributeName';
-        } else if (char === '/') {
-          this.consume();
-          this.state = 'selfClosingStartTag';
-        } else if (char === '>') {
-          this.consume();
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.state = 'beforeAttributeName';
-        }
-      },
-
-      selfClosingStartTag: function () {
-        var char = this.peek();
-
-        if (char === '>') {
-          this.consume();
-          this.delegate.markTagAsSelfClosing();
-          this.delegate.finishTag();
-          this.state = 'beforeData';
-        } else {
-          this.state = 'beforeAttributeName';
-        }
-      },
-
-      endTagOpen: function () {
-        var char = this.consume();
-
-        if (_utils.isAlpha(char)) {
-          this.state = 'tagName';
-          this.delegate.beginEndTag();
-          this.delegate.appendToTagName(char.toLowerCase());
-        }
-      }
-    }
-  };
-
-  exports["default"] = EventedTokenizer;
 });
 enifed('simple-html-tokenizer/generate', ['exports', './generator'], function (exports, _generator) {
   exports["default"] = generate;
@@ -21809,12 +21444,19 @@ enifed('simple-html-tokenizer/tokenize', ['exports', './tokenizer', './entity-pa
     return tokenizer.tokenize(input);
   }
 });
-enifed('simple-html-tokenizer/tokenizer', ['exports', './evented-tokenizer', './tokens'], function (exports, _eventedTokenizer, _tokens) {
+enifed('simple-html-tokenizer/tokenizer', ['exports', './utils', './tokens'], function (exports, _utils, _tokens) {
 
   function Tokenizer(entityParser) {
-    this.tokenizer = new _eventedTokenizer["default"](this, entityParser);
+    this.entityParser = entityParser;
 
+    this.input = null;
+    this.state = null;
     this.token = null;
+
+    this["char"] = -1;
+    this.line = -1;
+    this.column = -1;
+
     this.startLine = -1;
     this.startColumn = -1;
 
@@ -21822,123 +21464,405 @@ enifed('simple-html-tokenizer/tokenizer', ['exports', './evented-tokenizer', './
   }
 
   Tokenizer.prototype = {
-    tokenize: function (input) {
-      this.tokens = [];
-      this.tokenizer.tokenize(input);
-      return this.tokens;
-    },
-
-    tokenizePart: function (input) {
-      this.tokens = [];
-      this.tokenizer.tokenizePart(input);
-      return this.tokens;
-    },
-
-    tokenizeEOF: function () {
-      this.tokens = [];
-      this.tokenizer.tokenizeEOF();
-      return this.tokens[0];
-    },
-
     reset: function () {
+      this.input = '';
+      this.state = 'data';
       this.token = null;
+
+      this["char"] = 0;
+      this.line = 1;
+      this.column = 0;
+
       this.startLine = 1;
       this.startColumn = 0;
     },
 
-    addLocInfo: function () {
+    tokenize: function (input) {
+      this.reset();
+
+      var tokens = this.tokenizePart(input);
+      var trailingToken = this.tokenizeEOF();
+
+      if (trailingToken) {
+        tokens.push(trailingToken);
+      }
+
+      return tokens;
+    },
+
+    tokenizePart: function (input) {
+      this.input += (0, _utils.preprocessInput)(input);
+
+      var tokens = [];
+
+      while (true) {
+        var token = this.lex();
+
+        if (token) {
+          tokens.push(token);
+        } else {
+          break;
+        }
+      }
+
+      return tokens;
+    },
+
+    tokenizeEOF: function () {
+      return this.emitToken();
+    },
+
+    lex: function () {
+      while (this["char"] < this.input.length) {
+        var char = this.input.charAt(this["char"]++);
+        if (char) {
+          if (char === '\n') {
+            this.line++;
+            this.column = 0;
+          } else {
+            this.column++;
+          }
+
+          var token = this.states[this.state].call(this, char);
+          if (token) {
+            return token;
+          }
+        }
+      }
+    },
+
+    addLocInfo: function (_endLine, _endColumn) {
+      var endLine = _endLine === undefined ? this.line : _endLine;
+      var endColumn = _endColumn === undefined ? this.column : _endColumn;
+
       this.token.loc = {
         start: {
           line: this.startLine,
           column: this.startColumn
         },
         end: {
-          line: this.tokenizer.line,
-          column: this.tokenizer.column
+          line: endLine,
+          column: endColumn
         }
       };
 
-      this.startLine = this.tokenizer.line;
-      this.startColumn = this.tokenizer.column;
+      this.startLine = endLine;
+      this.startColumn = endColumn;
     },
 
-    // Data
-
-    beginData: function () {
-      this.token = new _tokens.Chars();
-      this.tokens.push(this.token);
+    createTag: function (Type, char) {
+      var lastToken = this.token;
+      this.token = new Type(char);
+      this.state = 'tagName';
+      return lastToken;
     },
 
-    appendToData: function (char) {
-      this.token.chars += char;
-    },
-
-    finishData: function () {
-      this.addLocInfo();
-    },
-
-    // Comment
-
-    beginComment: function () {
-      this.token = new _tokens.Comment();
-      this.tokens.push(this.token);
-    },
-
-    appendToCommentData: function (char) {
-      this.token.chars += char;
-    },
-
-    finishComment: function () {
-      this.addLocInfo();
-    },
-
-    // Tags - basic
-
-    beginStartTag: function () {
-      this.token = new _tokens.StartTag();
-      this.tokens.push(this.token);
-    },
-
-    beginEndTag: function () {
-      this.token = new _tokens.EndTag();
-      this.tokens.push(this.token);
-    },
-
-    finishTag: function () {
-      this.addLocInfo();
-    },
-
-    markTagAsSelfClosing: function () {
-      this.token.selfClosing = true;
-    },
-
-    // Tags - name
-
-    appendToTagName: function (char) {
+    addToTagName: function (char) {
       this.token.tagName += char;
     },
 
-    // Tags - attributes
-
-    beginAttribute: function () {
-      this._currentAttribute = ['', '', null];
-      this.token.attributes.push(this._currentAttribute);
+    selfClosing: function () {
+      this.token.selfClosing = true;
     },
 
-    appendToAttributeName: function (char) {
+    createAttribute: function (char) {
+      this._currentAttribute = [char.toLowerCase(), '', null];
+      this.token.attributes.push(this._currentAttribute);
+      this.state = 'attributeName';
+    },
+
+    addToAttributeName: function (char) {
       this._currentAttribute[0] += char;
     },
 
-    beginAttributeValue: function (isQuoted) {
-      this._currentAttribute[2] = isQuoted;
+    markAttributeQuoted: function (value) {
+      this._currentAttribute[2] = value;
     },
 
-    appendToAttributeValue: function (char) {
+    finalizeAttributeValue: function () {
+      if (this._currentAttribute) {
+        if (this._currentAttribute[2] === null) {
+          this._currentAttribute[2] = false;
+        }
+        this._currentAttribute = undefined;
+      }
+    },
+
+    addToAttributeValue: function (char) {
       this._currentAttribute[1] = this._currentAttribute[1] || '';
       this._currentAttribute[1] += char;
     },
 
-    finishAttributeValue: function () {}
+    createComment: function () {
+      var lastToken = this.token;
+      this.token = new _tokens.Comment();
+      this.state = 'commentStart';
+      return lastToken;
+    },
+
+    addToComment: function (char) {
+      this.addChar(char);
+    },
+
+    addChar: function (char) {
+      this.token.chars += char;
+    },
+
+    finalizeToken: function () {
+      if (this.token.type === 'StartTag') {
+        this.finalizeAttributeValue();
+      }
+    },
+
+    emitData: function () {
+      var token = this.token;
+      if (token) {
+        this.addLocInfo(this.line, this.column - 1);
+      }
+
+      this.token = null;
+      this.state = 'tagOpen';
+
+      return token;
+    },
+
+    emitToken: function () {
+      var token = this.token;
+      if (token) {
+        this.addLocInfo();
+        this.finalizeToken();
+      }
+
+      this.token = null;
+      this.state = 'data';
+
+      return token;
+    },
+
+    addData: function (char) {
+      if (this.token === null) {
+        this.token = new _tokens.Chars();
+      }
+
+      this.addChar(char);
+    },
+
+    consumeCharRef: function () {
+      return this.entityParser.parse(this);
+    },
+
+    states: {
+      data: function (char) {
+        if (char === '<') {
+          var chars = this.emitData();
+          return chars;
+        } else if (char === '&') {
+          this.addData(this.consumeCharRef() || '&');
+        } else {
+          this.addData(char);
+        }
+      },
+
+      tagOpen: function (char) {
+        if (char === '!') {
+          this.state = 'markupDeclaration';
+        } else if (char === '/') {
+          this.state = 'endTagOpen';
+        } else if ((0, _utils.isAlpha)(char)) {
+          return this.createTag(_tokens.StartTag, char.toLowerCase());
+        }
+      },
+
+      markupDeclaration: function (char) {
+        if (char === '-' && this.input.charAt(this["char"]) === '-') {
+          this["char"]++;
+          this.createComment();
+        }
+      },
+
+      commentStart: function (char) {
+        if (char === '-') {
+          this.state = 'commentStartDash';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.addToComment(char);
+          this.state = 'comment';
+        }
+      },
+
+      commentStartDash: function (char) {
+        if (char === '-') {
+          this.state = 'commentEnd';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.addToComment('-');
+          this.state = 'comment';
+        }
+      },
+
+      comment: function (char) {
+        if (char === '-') {
+          this.state = 'commentEndDash';
+        } else {
+          this.addToComment(char);
+        }
+      },
+
+      commentEndDash: function (char) {
+        if (char === '-') {
+          this.state = 'commentEnd';
+        } else {
+          this.addToComment('-' + char);
+          this.state = 'comment';
+        }
+      },
+
+      commentEnd: function (char) {
+        if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.addToComment('--' + char);
+          this.state = 'comment';
+        }
+      },
+
+      tagName: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          this.state = 'beforeAttributeName';
+        } else if (char === '/') {
+          this.state = 'selfClosingStartTag';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.addToTagName(char);
+        }
+      },
+
+      beforeAttributeName: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          return;
+        } else if (char === '/') {
+          this.state = 'selfClosingStartTag';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.createAttribute(char);
+        }
+      },
+
+      attributeName: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          this.state = 'afterAttributeName';
+        } else if (char === '/') {
+          this.state = 'selfClosingStartTag';
+        } else if (char === '=') {
+          this.state = 'beforeAttributeValue';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.addToAttributeName(char);
+        }
+      },
+
+      afterAttributeName: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          return;
+        } else if (char === '/') {
+          this.state = 'selfClosingStartTag';
+        } else if (char === '=') {
+          this.state = 'beforeAttributeValue';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.finalizeAttributeValue();
+          this.createAttribute(char);
+        }
+      },
+
+      beforeAttributeValue: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          return;
+        } else if (char === '"') {
+          this.state = 'attributeValueDoubleQuoted';
+          this.markAttributeQuoted(true);
+        } else if (char === '\'') {
+          this.state = 'attributeValueSingleQuoted';
+          this.markAttributeQuoted(true);
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.state = 'attributeValueUnquoted';
+          this.markAttributeQuoted(false);
+          this.addToAttributeValue(char);
+        }
+      },
+
+      attributeValueDoubleQuoted: function (char) {
+        if (char === '"') {
+          this.finalizeAttributeValue();
+          this.state = 'afterAttributeValueQuoted';
+        } else if (char === '&') {
+          this.addToAttributeValue(this.consumeCharRef('"') || '&');
+        } else {
+          this.addToAttributeValue(char);
+        }
+      },
+
+      attributeValueSingleQuoted: function (char) {
+        if (char === '\'') {
+          this.finalizeAttributeValue();
+          this.state = 'afterAttributeValueQuoted';
+        } else if (char === '&') {
+          this.addToAttributeValue(this.consumeCharRef('\'') || '&');
+        } else {
+          this.addToAttributeValue(char);
+        }
+      },
+
+      attributeValueUnquoted: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          this.finalizeAttributeValue();
+          this.state = 'beforeAttributeName';
+        } else if (char === '&') {
+          this.addToAttributeValue(this.consumeCharRef('>') || '&');
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this.addToAttributeValue(char);
+        }
+      },
+
+      afterAttributeValueQuoted: function (char) {
+        if ((0, _utils.isSpace)(char)) {
+          this.state = 'beforeAttributeName';
+        } else if (char === '/') {
+          this.state = 'selfClosingStartTag';
+        } else if (char === '>') {
+          return this.emitToken();
+        } else {
+          this["char"]--;
+          this.state = 'beforeAttributeName';
+        }
+      },
+
+      selfClosingStartTag: function (char) {
+        if (char === '>') {
+          this.selfClosing();
+          return this.emitToken();
+        } else {
+          this["char"]--;
+          this.state = 'beforeAttributeName';
+        }
+      },
+
+      endTagOpen: function (char) {
+        if ((0, _utils.isAlpha)(char)) {
+          this.createTag(_tokens.EndTag, char.toLowerCase());
+        }
+      }
+    }
   };
 
   exports["default"] = Tokenizer;
